@@ -17,6 +17,12 @@ A GitHub Action that automatically adds the current GitHub runner's public IP ad
 
 ```yaml
 steps:
+  - name: Configure AWS credentials
+    uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
+      aws-region: us-east-1
+      
   - name: Add runner IP to WAF IPSet
     uses: digglife/aws-waf-ipset-update@v1
     with:
@@ -24,9 +30,6 @@ steps:
       name: 'your-ipset-name'
       scope: 'REGIONAL'
       region: 'us-east-1'
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 ```
 
 ### Complete Workflow Example
@@ -43,6 +46,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
+          aws-region: us-west-2
+      
       - name: Add runner IP to WAF IPSet
         uses: digglife/aws-waf-ipset-update@v1
         with:
@@ -50,9 +59,6 @@ jobs:
           name: 'github-runners-ipset'
           scope: 'REGIONAL'
           region: 'us-west-2'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       
       # Your deployment steps here
       - name: Deploy application
@@ -71,9 +77,6 @@ jobs:
 | `name` | The name of the IPSet | ✅ Yes | |
 | `scope` | The scope of the IPSet (`CLOUDFRONT` or `REGIONAL`) | ✅ Yes | `REGIONAL` |
 | `region` | The AWS region for the IPSet | ✅ Yes | `us-east-1` |
-| `aws-access-key-id` | AWS Access Key ID (alternatively use environment variables) | No | |
-| `aws-secret-access-key` | AWS Secret Access Key (alternatively use environment variables) | No | |
-| `aws-session-token` | AWS Session Token for temporary credentials | No | |
 
 ## Outputs
 
@@ -122,27 +125,47 @@ For more restrictive permissions, you can specify the exact IPSet ARN:
 
 ## Authentication
 
-### Option 1: Environment Variables (Recommended)
+This action uses the AWS SDK's default credential chain to authenticate with AWS. You can provide credentials using any of the following methods:
+
+### Option 1: aws-actions/configure-aws-credentials (Recommended)
 
 ```yaml
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }} # Optional for temporary credentials
+steps:
+  - name: Configure AWS credentials
+    uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
+      aws-region: us-west-2
+      
+  - name: Add runner IP to WAF IPSet
+    uses: digglife/aws-waf-ipset-update@v1
+    with:
+      id: 'your-ipset-id-here'
+      name: 'your-ipset-name'
+      scope: 'REGIONAL'
+      region: 'us-west-2'
 ```
 
-### Option 2: Action Inputs
+### Option 2: Environment Variables
 
 ```yaml
-with:
-  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # Optional
+steps:
+  - name: Add runner IP to WAF IPSet
+    uses: digglife/aws-waf-ipset-update@v1
+    with:
+      id: 'your-ipset-id-here'
+      name: 'your-ipset-name'
+      scope: 'REGIONAL'
+      region: 'us-west-2'
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }} # Optional for temporary credentials
 ```
 
 ### Option 3: IAM Roles (Self-hosted runners)
 
-If running on self-hosted runners with IAM roles attached, no credentials need to be provided.
+If running on self-hosted runners with IAM roles attached, no explicit credential configuration is needed.
 
 ## How It Works
 

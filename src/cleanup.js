@@ -2,27 +2,17 @@ const core = require('@actions/core');
 const { WAFv2Client, UpdateIPSetCommand, GetIPSetCommand } = require('@aws-sdk/client-wafv2');
 
 /**
- * Configure AWS client with credentials
+ * Configure AWS client
  * @param {string} region AWS region
  * @returns {WAFv2Client} Configured WAF client
  */
 function createWAFClient(region) {
-  const config = { region };
-  
-  // Use provided credentials or fallback to environment/IAM role
-  const accessKeyId = core.getInput('aws-access-key-id');
-  const secretAccessKey = core.getInput('aws-secret-access-key');
-  const sessionToken = core.getInput('aws-session-token');
-  
-  if (accessKeyId && secretAccessKey) {
-    config.credentials = {
-      accessKeyId,
-      secretAccessKey,
-      ...(sessionToken && { sessionToken })
-    };
-  }
-  
-  return new WAFv2Client(config);
+  // Use AWS SDK default credential chain
+  // This will automatically pick up credentials from:
+  // - Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
+  // - IAM roles (for self-hosted runners)
+  // - Credentials set by actions like aws-actions/configure-aws-credentials
+  return new WAFv2Client({ region });
 }
 
 /**
