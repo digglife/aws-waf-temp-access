@@ -1,0 +1,54 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run linter
+      run: npm run lint
+    
+    - name: Run tests
+      run: npm run test
+    
+    - name: Build action
+      run: npm run build
+    
+    - name: Verify dist files
+      run: |
+        if [ ! -f "dist/index.js" ] || [ ! -f "dist/cleanup.js" ]; then
+          echo "Error: dist files are missing"
+          exit 1
+        fi
+        echo "✅ All dist files are present"
+    
+    - name: Check for uncommitted changes
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "Error: Uncommitted changes found after build"
+          git status --porcelain
+          exit 1
+        fi
+        echo "✅ No uncommitted changes"
