@@ -17,15 +17,6 @@ inputs:
     description: 'The AWS region for the IPSet'
     required: true
     default: 'us-east-1'
-  aws-access-key-id:
-    description: 'AWS Access Key ID'
-    required: false
-  aws-secret-access-key:
-    description: 'AWS Secret Access Key'
-    required: false
-  aws-session-token:
-    description: 'AWS Session Token'
-    required: false
 
 runs:
   using: 'node20'

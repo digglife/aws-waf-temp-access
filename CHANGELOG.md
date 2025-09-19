@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Simplified AWS authentication by removing manual credential handling
+- Action now relies on AWS SDK's default credential chain for authentication
+- Removed `aws-access-key-id`, `aws-secret-access-key`, and `aws-session-token` input parameters
+- Updated documentation to recommend using `aws-actions/configure-aws-credentials`
+
+### Improved
+- Better compatibility with existing AWS credential management actions
+- Cleaner action interface with fewer parameters
+- More flexible authentication options through AWS SDK defaults
+
 ## [1.0.0] - 2024-09-19
 
 ### Added
