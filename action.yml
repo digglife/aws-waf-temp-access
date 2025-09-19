@@ -2,6 +2,11 @@ name: 'AWS WAF IPSet Update'
 description: 'Add GitHub Runner IP to AWS WAF IPSet with automatic cleanup'
 author: 'digglife'
 
+# GitHub Marketplace metadata
+branding:
+  icon: 'shield'
+  color: 'orange'
+
 inputs:
   id:
     description: 'The ID of the IPSet'
@@ -23,6 +28,8 @@ runs:
   main: 'dist/index.js'
   post: 'dist/cleanup.js'
 
-branding:
-  icon: 'shield'
-  color: 'orange'
+outputs:
+  ip-address:
+    description: 'The public IP address that was added to the IPSet'
+  status:
+    description: 'Status of the operation (success or failed)'

@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm run test
+    
+    - name: Run linter
+      run: npm run lint
+    
+    - name: Build action
+      run: npm run build
+    
+    - name: Verify dist files
+      run: |
+        if [ ! -f "dist/index.js" ] || [ ! -f "dist/cleanup.js" ]; then
+          echo "Error: dist files are missing"
+          exit 1
+        fi
+        echo "✅ All dist files are present"
+    
+    - name: Extract tag name
+      id: tag
+      run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        release_name: Release ${{ steps.tag.outputs.tag }}
+        body: |
+          ## Changes in ${{ steps.tag.outputs.tag }}
+          
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
+          
+          ## Usage
+          
+          ```yaml
+          - name: Add runner IP to WAF IPSet
+            uses: digglife/aws-waf-ipset-update@${{ steps.tag.outputs.tag }}
+            with:
+              id: 'your-ipset-id'
+              name: 'your-ipset-name'
+              scope: 'REGIONAL'
+              region: 'us-east-1'
+            env:
+              AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ```
+        draft: false
+        prerelease: false
+    
+    - name: Commit and push dist files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add dist/
+        if ! git diff --staged --quiet; then
+          git commit -m "Build and package for release ${{ steps.tag.outputs.tag }}"
+          git push origin HEAD:main
+        else
+          echo "No changes to commit"
+        fi
