@@ -1,0 +1,32 @@
+name: Example Usage
+
+on:
+  workflow_dispatch:
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Add runner IP to WAF IPSet
+        uses: ./
+        with:
+          id: 'example-ipset-id'
+          name: 'example-ipset-name'
+          scope: 'REGIONAL'
+          region: 'us-east-1'
+        env:
+          # These would normally be secrets
+          # AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          # AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: 'dummy-for-example'
+          AWS_SECRET_ACCESS_KEY: 'dummy-for-example'
+      
+      - name: Your protected operations
+        run: |
+          echo "Running operations that require WAF allowlist..."
+          echo "Runner IP is now allowed through WAF"
+          
+      # IP cleanup happens automatically via post-action

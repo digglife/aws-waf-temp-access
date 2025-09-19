@@ -1,0 +1,37 @@
+name: 'AWS WAF IPSet Update'
+description: 'Add GitHub Runner IP to AWS WAF IPSet with automatic cleanup'
+author: 'digglife'
+
+inputs:
+  id:
+    description: 'The ID of the IPSet'
+    required: true
+  name:
+    description: 'The name of the IPSet'
+    required: true
+  scope:
+    description: 'The scope of the IPSet (CLOUDFRONT or REGIONAL)'
+    required: true
+    default: 'REGIONAL'
+  region:
+    description: 'The AWS region for the IPSet'
+    required: true
+    default: 'us-east-1'
+  aws-access-key-id:
+    description: 'AWS Access Key ID'
+    required: false
+  aws-secret-access-key:
+    description: 'AWS Secret Access Key'
+    required: false
+  aws-session-token:
+    description: 'AWS Session Token'
+    required: false
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+  post: 'dist/cleanup.js'
+
+branding:
+  icon: 'shield'
+  color: 'orange'
