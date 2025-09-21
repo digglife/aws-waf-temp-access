@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Renamed action from "AWS WAF IPSet Update" to "aws-waf-temp-access" to better reflect its purpose
 - Simplified AWS authentication by removing manual credential handling
 - Action now relies on AWS SDK's default credential chain for authentication
 - Removed `aws-access-key-id`, `aws-secret-access-key`, and `aws-session-token` input parameters
