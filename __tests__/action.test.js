@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-describe('AWS WAF IPSet Update Action', () => {
+describe('aws-waf-temp-access', () => {
   test('action.yml should have correct structure', () => {
     const actionPath = path.join(__dirname, '..', 'action.yml');
     expect(fs.existsSync(actionPath)).toBe(true);
@@ -11,7 +11,7 @@ describe('AWS WAF IPSet Update Action', () => {
     const action = yaml.load(actionContent);
     
     // Check required fields
-    expect(action.name).toBe('AWS WAF IPSet Update');
+    expect(action.name).toBe('aws-waf-temp-access');
     expect(action.description).toBeDefined();
     expect(action.runs).toBeDefined();
     expect(action.runs.using).toBe('node20');

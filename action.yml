@@ -1,4 +1,4 @@
-name: 'AWS WAF IPSet Update'
+name: 'aws-waf-temp-access'
 description: 'Add GitHub Runner IP to AWS WAF IPSet with automatic cleanup'
 author: 'digglife'
 
