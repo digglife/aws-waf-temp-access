@@ -1,8 +1,8 @@
 # aws-waf-temp-access
 
-[![Tests](https://github.com/digglife/aws-waf-ipset-update/actions/workflows/test.yml/badge.svg)](https://github.com/digglife/aws-waf-ipset-update/actions/workflows/test.yml)
-[![Release](https://github.com/digglife/aws-waf-ipset-update/actions/workflows/release.yml/badge.svg)](https://github.com/digglife/aws-waf-ipset-update/actions/workflows/release.yml)
-[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-aws--waf--temp--access-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAM6wAADOsB5dZE0gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAERSURBVCiRhZG/SsMxFEZPfsVJ61jbxaF0cRQRcRJ9hlYn30IHN/+9iquDCOIsblIrOjqKgy5aKoJQj4n3EX+GvTUXAstGoCU+h9oeRJXbCxNyPF1wIv1b3rh+E6K2Uq3tpv0tDmPU6A4hJiNm5prtZs/M12VKQjOGqVxJA3U5DU6PCCi6N8vkLMJOA/xH3/JhVhj9SWHBV5hCOFzO1PSI6o2E6JbOjyeBa3MFQl9aLl5CKNHd9TYW6+UWXNBg6vtJ+IhhDo4/BnJW0hKePEJJJH6fWGIXg+lNmcCy6mGhc9VuIU+4DsL8W9vBGJJCO4dWh3S4hZHjpTf8k/YB8LkNfhj8DgEP5z/IkBcHHR5nOJ8AAAAASUVORK5CYII=)](https://github.com/marketplace/actions/aws-waf-ipset-update)
+[![Tests](https://github.com/digglife/aws-waf-temp-access/actions/workflows/test.yml/badge.svg)](https://github.com/digglife/aws-waf-temp-access/actions/workflows/test.yml)
+[![Release](https://github.com/digglife/aws-waf-temp-access/actions/workflows/release.yml/badge.svg)](https://github.com/digglife/aws-waf-temp-access/actions/workflows/release.yml)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-aws--waf--temp--access-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAM6wAADOsB5dZE0gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAERSURBVCiRhZG/SsMxFEZPfsVJ61jbxaF0cRQRcRJ9hlYn30IHN/+9iquDCOIsblIrOjqKgy5aKoJQj4n3EX+GvTUXAstGoCU+h9oeRJXbCxNyPF1wIv1b3rh+E6K2Uq3tpv0tDmPU6A4hJiNm5prtZs/M12VKQjOGqVxJA3U5DU6PCCi6N8vkLMJOA/xH3/JhVhj9SWHBV5hCOFzO1PSI6o2E6JbOjyeBa3MFQl9aLl5CKNHd9TYW6+UWXNBg6vtJ+IhhDo4/BnJW0hKePEJJJH6fWGIXg+lNmcCy6mGhc9VuIU+4DsL8W9vBGJJCO4dWh3S4hZHjpTf8k/YB8LkNfhj8DgEP5z/IkBcHHR5nOJ8AAAAASUVORK5CYII=)](https://github.com/marketplace/actions/aws-waf-temp-access)
 
 A GitHub Action that automatically adds the current GitHub runner's public IP address to an AWS WAF IPSet and removes it after the workflow completes. This is useful for allowing temporary access from GitHub Actions runners to resources protected by AWS WAF.
 
@@ -28,7 +28,7 @@ steps:
       aws-region: us-east-1
       
   - name: Add runner IP to WAF IPSet
-    uses: digglife/aws-waf-ipset-update@v1
+    uses: digglife/aws-waf-temp-access@v1
     with:
       id: 'your-ipset-id-here'
       name: 'your-ipset-name'
@@ -57,7 +57,7 @@ jobs:
           aws-region: us-west-2
       
       - name: Add runner IP to WAF IPSet
-        uses: digglife/aws-waf-ipset-update@v1
+        uses: digglife/aws-waf-temp-access@v1
         with:
           id: 'abcdef12-3456-7890-abcd-ef1234567890'
           name: 'github-runners-ipset'
@@ -142,7 +142,7 @@ steps:
       aws-region: us-west-2
       
   - name: Add runner IP to WAF IPSet
-    uses: digglife/aws-waf-ipset-update@v1
+    uses: digglife/aws-waf-temp-access@v1
     with:
       id: 'your-ipset-id-here'
       name: 'your-ipset-name'
@@ -155,7 +155,7 @@ steps:
 ```yaml
 steps:
   - name: Add runner IP to WAF IPSet
-    uses: digglife/aws-waf-ipset-update@v1
+    uses: digglife/aws-waf-temp-access@v1
     with:
       id: 'your-ipset-id-here'
       name: 'your-ipset-name'
