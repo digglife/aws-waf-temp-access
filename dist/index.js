@@ -63408,7 +63408,11 @@ module.exports = /*#__PURE__*/JSON.parse('{"application/1d-interleaved-parityfec
 /************************************************************************/
 var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
-const { WAFv2Client, UpdateIPSetCommand, GetIPSetCommand } = __nccwpck_require__(8213);
+const {
+  WAFv2Client,
+  UpdateIPSetCommand,
+  GetIPSetCommand,
+} = __nccwpck_require__(8213);
 const axios = __nccwpck_require__(7269);
 
 /**
@@ -63418,14 +63422,16 @@ const axios = __nccwpck_require__(7269);
 async function getPublicIP() {
   try {
     const response = await axios.get('https://api.ipify.org?format=text', {
-      timeout: 10000
+      timeout: 10000,
     });
     return response.data.trim();
   } catch (error) {
-    core.debug(`Failed to get IP from ipify, trying alternative: ${error.message}`);
+    core.debug(
+      `Failed to get IP from ipify, trying alternative: ${error.message}`,
+    );
     try {
       const response = await axios.get('https://icanhazip.com/', {
-        timeout: 10000
+        timeout: 10000,
       });
       return response.data.trim();
     } catch (fallbackError) {
@@ -63459,66 +63465,71 @@ function createWAFClient(region) {
 async function addIPToIPSet(client, id, name, scope, ipAddress) {
   const maxRetries = 10;
   const baseDelay = 1000; // 1 second
-  
+
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       core.info(`Attempt ${attempt + 1}: Getting current IPSet state...`);
-      
+
       // Get current IPSet
       const getCommand = new GetIPSetCommand({
         Id: id,
         Name: name,
-        Scope: scope
+        Scope: scope,
       });
-      
+
       const ipSetResponse = await client.send(getCommand);
       const currentAddresses = ipSetResponse.IPSet.Addresses || [];
-      
+
       // Check if IP is already in the set
-      const ipWithCidr = ipAddress.includes('/') ? ipAddress : `${ipAddress}/32`;
+      const ipWithCidr = ipAddress.includes('/')
+        ? ipAddress
+        : `${ipAddress}/32`;
       if (currentAddresses.includes(ipWithCidr)) {
         core.info(`IP ${ipWithCidr} is already in the IPSet`);
         return;
       }
-      
+
       // Add the new IP to the list
       const updatedAddresses = [...currentAddresses, ipWithCidr];
-      
+
       core.info(`Adding IP ${ipWithCidr} to IPSet ${name}...`);
-      
+
       // Update IPSet
       const updateCommand = new UpdateIPSetCommand({
         Id: id,
         Name: name,
         Scope: scope,
         Addresses: updatedAddresses,
-        LockToken: ipSetResponse.LockToken
+        LockToken: ipSetResponse.LockToken,
       });
-      
+
       await client.send(updateCommand);
       core.info(`Successfully added IP ${ipWithCidr} to IPSet ${name}`);
-      
+
       // Store the IP for cleanup
       core.saveState('runner-ip', ipWithCidr);
       core.saveState('ipset-id', id);
       core.saveState('ipset-name', name);
       core.saveState('ipset-scope', scope);
       core.saveState('aws-region', client.config.region);
-      
+
       return;
-      
     } catch (error) {
       if (error.name === 'WAFOptimisticLockException') {
         const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
-        core.warning(`Lock conflict detected, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        core.warning(
+          `Lock conflict detected, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
       throw error;
     }
   }
-  
-  throw new Error(`Failed to add IP to IPSet after ${maxRetries} attempts due to lock conflicts`);
+
+  throw new Error(
+    `Failed to add IP to IPSet after ${maxRetries} attempts due to lock conflicts`,
+  );
 }
 
 async function main() {
@@ -63528,28 +63539,31 @@ async function main() {
     const name = core.getInput('name', { required: true });
     const scope = core.getInput('scope', { required: true });
     const region = core.getInput('region', { required: true });
-    
-    core.info(`Starting AWS WAF IPSet update for: ${name} (${id}) in ${region}`);
-    
+
+    core.info(
+      `Starting AWS WAF IPSet update for: ${name} (${id}) in ${region}`,
+    );
+
     // Validate scope
     if (!['CLOUDFRONT', 'REGIONAL'].includes(scope)) {
-      throw new Error(`Invalid scope: ${scope}. Must be CLOUDFRONT or REGIONAL`);
+      throw new Error(
+        `Invalid scope: ${scope}. Must be CLOUDFRONT or REGIONAL`,
+      );
     }
-    
+
     // Get public IP
     core.info('Getting public IP address...');
     const publicIP = await getPublicIP();
     core.info(`Public IP detected: ${publicIP}`);
-    
+
     // Create WAF client
     const wafClient = createWAFClient(region);
-    
+
     // Add IP to IPSet
     await addIPToIPSet(wafClient, id, name, scope, publicIP);
-    
+
     core.setOutput('ip-address', publicIP);
     core.setOutput('status', 'success');
-    
   } catch (error) {
     core.setFailed(`Action failed: ${error.message}`);
     core.debug(error.stack);
@@ -63558,6 +63572,7 @@ async function main() {
 
 // Run the action
 main();
+
 module.exports = __webpack_exports__;
 /******/ })()
 ;

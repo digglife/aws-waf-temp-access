@@ -53792,7 +53792,11 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"@aws-sdk/nested-clients","ver
 /************************************************************************/
 var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
-const { WAFv2Client, UpdateIPSetCommand, GetIPSetCommand } = __nccwpck_require__(8213);
+const {
+  WAFv2Client,
+  UpdateIPSetCommand,
+  GetIPSetCommand,
+} = __nccwpck_require__(8213);
 
 /**
  * Configure AWS client
@@ -53819,63 +53823,70 @@ function createWAFClient(region) {
 async function removeIPFromIPSet(client, id, name, scope, ipAddress) {
   const maxRetries = 10;
   const baseDelay = 1000; // 1 second
-  
+
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      core.info(`Cleanup attempt ${attempt + 1}: Getting current IPSet state...`);
-      
+      core.info(
+        `Cleanup attempt ${attempt + 1}: Getting current IPSet state...`,
+      );
+
       // Get current IPSet
       const getCommand = new GetIPSetCommand({
         Id: id,
         Name: name,
-        Scope: scope
+        Scope: scope,
       });
-      
+
       const ipSetResponse = await client.send(getCommand);
       const currentAddresses = ipSetResponse.IPSet.Addresses || [];
-      
+
       // Check if IP is in the set
       if (!currentAddresses.includes(ipAddress)) {
         core.info(`IP ${ipAddress} is not in the IPSet, no cleanup needed`);
         return;
       }
-      
+
       // Remove the IP from the list
-      const updatedAddresses = currentAddresses.filter(addr => addr !== ipAddress);
-      
+      const updatedAddresses = currentAddresses.filter(
+        (addr) => addr !== ipAddress,
+      );
+
       core.info(`Removing IP ${ipAddress} from IPSet ${name}...`);
-      
+
       // Update IPSet
       const updateCommand = new UpdateIPSetCommand({
         Id: id,
         Name: name,
         Scope: scope,
         Addresses: updatedAddresses,
-        LockToken: ipSetResponse.LockToken
+        LockToken: ipSetResponse.LockToken,
       });
-      
+
       await client.send(updateCommand);
       core.info(`Successfully removed IP ${ipAddress} from IPSet ${name}`);
-      
+
       return;
-      
     } catch (error) {
       if (error.name === 'WAFOptimisticLockException') {
         const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
-        core.warning(`Lock conflict detected during cleanup, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        core.warning(
+          `Lock conflict detected during cleanup, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
-      
+
       // Log cleanup errors but don't fail the action
       core.warning(`Cleanup attempt ${attempt + 1} failed: ${error.message}`);
       if (attempt === maxRetries - 1) {
-        core.warning(`Failed to cleanup IP after ${maxRetries} attempts. Manual cleanup may be required.`);
+        core.warning(
+          `Failed to cleanup IP after ${maxRetries} attempts. Manual cleanup may be required.`,
+        );
         return;
       }
-      
+
       const delay = baseDelay * Math.pow(2, attempt);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 }
@@ -53888,22 +53899,29 @@ async function cleanup() {
     const ipsetName = core.getState('ipset-name');
     const ipsetScope = core.getState('ipset-scope');
     const awsRegion = core.getState('aws-region');
-    
+
     if (!runnerIP || !ipsetId || !ipsetName || !ipsetScope || !awsRegion) {
       core.info('No cleanup state found, skipping IP removal');
       return;
     }
-    
-    core.info(`Starting cleanup: removing ${runnerIP} from IPSet ${ipsetName} (${ipsetId})`);
-    
+
+    core.info(
+      `Starting cleanup: removing ${runnerIP} from IPSet ${ipsetName} (${ipsetId})`,
+    );
+
     // Create WAF client
     const wafClient = createWAFClient(awsRegion);
-    
+
     // Remove IP from IPSet
-    await removeIPFromIPSet(wafClient, ipsetId, ipsetName, ipsetScope, runnerIP);
-    
+    await removeIPFromIPSet(
+      wafClient,
+      ipsetId,
+      ipsetName,
+      ipsetScope,
+      runnerIP,
+    );
+
     core.info('Cleanup completed successfully');
-    
   } catch (error) {
     // Don't fail the action on cleanup errors, just log them
     core.warning(`Cleanup failed: ${error.message}`);
@@ -53913,6 +53931,7 @@ async function cleanup() {
 
 // Run cleanup
 cleanup();
+
 module.exports = __webpack_exports__;
 /******/ })()
 ;

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
+
 describe('aws-waf-temp-access', () => {
   test('action.yml should have correct structure', () => {
     const actionPath = path.join(__dirname, '..', 'action.yml');
