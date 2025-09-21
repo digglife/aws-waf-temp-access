@@ -65,7 +65,7 @@ jobs:
                 role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
                 aws-region: us-east-1
             - name: Add runner IP to WAF IPSet
-              uses: digglife/aws-waf-ipset-update@${{ steps.tag.outputs.tag }}
+              uses: digglife/aws-waf-temp-access@${{ steps.tag.outputs.tag }}
               with:
                 id: 'your-ipset-id'
                 name: 'your-ipset-name'
