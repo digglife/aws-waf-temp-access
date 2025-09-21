@@ -1,6 +1,6 @@
-# AWS WAF IPSet Update Action
+# AWS WAF Temp Access Action
 
-AWS WAF IPSet Update Action is a Node.js GitHub Action that automatically adds and removes the GitHub runner's public IP address to AWS WAF IPSets for secure access during workflows.
+AWS WAF Temp Access Action is a Node.js GitHub Action that automatically adds and removes the GitHub runner's public IP address to AWS WAF IPSets for secure access during workflows.
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
@@ -150,7 +150,7 @@ node -e "console.log(require('@actions/core')); console.log(require('@aws-sdk/cl
 ## Repository Structure Overview
 
 ```
-aws-waf-ipset-update/
+aws-waf-temp-access/
 ├── src/
 │   ├── index.js          # Main action logic
 │   └── cleanup.js        # Post-action cleanup

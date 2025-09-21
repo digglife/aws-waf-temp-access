@@ -1,7 +1,7 @@
 {
-  "name": "aws-waf-ipset-update",
+  "name": "aws-waf-temp-access",
   "version": "1.0.0",
-  "description": "A GitHub Action for updating AWS WAF IPSet with current runner IP",
+  "description": "A GitHub Action for temporary AWS WAF access by managing runner IP in IPSets",
   "main": "src/index.js",
   "scripts": {
     "build": "ncc build src/index.js -o dist && ncc build src/cleanup.js -o dist-cleanup && cp dist-cleanup/index.js dist/cleanup.js && rm -rf dist-cleanup",
