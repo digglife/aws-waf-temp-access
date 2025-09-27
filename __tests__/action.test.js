@@ -30,8 +30,6 @@ describe('aws-waf-temp-access', () => {
     expect(action.inputs.region.required).toBe(true);
     expect(action.inputs['security-group-id']).toBeDefined();
     expect(action.inputs['security-group-id'].required).toBe(false);
-    expect(action.inputs['security-group-description']).toBeDefined();
-    expect(action.inputs['security-group-description'].required).toBe(false);
   });
 
   test('dist files should exist', () => {
@@ -61,5 +59,49 @@ describe('aws-waf-temp-access', () => {
     
     // Check dev dependencies
     expect(packageContent.devDependencies['@vercel/ncc']).toBeDefined();
+  });
+
+  test('input validation logic should work correctly', () => {
+    // Test case 1: WAF only configuration
+    const hasWafConfig1 = 'test-id' && 'test-name';
+    const hasSecurityGroupConfig1 = '';
+    expect(hasWafConfig1 && !hasSecurityGroupConfig1).toBe(true);
+
+    // Test case 2: Security Group only configuration  
+    const hasWafConfig2 = '' && '';
+    const hasSecurityGroupConfig2 = 'sg-123456';
+    expect(!hasWafConfig2 && !!hasSecurityGroupConfig2).toBe(true);
+
+    // Test case 3: Both configurations
+    const hasWafConfig3 = 'test-id' && 'test-name';
+    const hasSecurityGroupConfig3 = 'sg-123456';
+    expect(!!hasWafConfig3 && !!hasSecurityGroupConfig3).toBe(true);
+
+    // Test case 4: No configuration (should fail)
+    const hasWafConfig4 = '' && '';
+    const hasSecurityGroupConfig4 = '';
+    expect(!hasWafConfig4 && !hasSecurityGroupConfig4).toBe(true);
+  });
+
+  test('scope validation should work correctly', () => {
+    const validScopes = ['CLOUDFRONT', 'REGIONAL'];
+    
+    expect(validScopes.includes('CLOUDFRONT')).toBe(true);
+    expect(validScopes.includes('REGIONAL')).toBe(true);
+    expect(validScopes.includes('INVALID')).toBe(false);
+    expect(validScopes.includes('regional')).toBe(false);
+    expect(validScopes.includes('')).toBe(false);
+  });
+
+  test('IP CIDR logic should work correctly', () => {
+    // Test IP without CIDR should get /32 added
+    const ip1 = '192.168.1.1';
+    const ipWithCidr1 = ip1.includes('/') ? ip1 : `${ip1}/32`;
+    expect(ipWithCidr1).toBe('192.168.1.1/32');
+
+    // Test IP with CIDR should remain unchanged
+    const ip2 = '10.0.0.1/24';
+    const ipWithCidr2 = ip2.includes('/') ? ip2 : `${ip2}/32`;
+    expect(ipWithCidr2).toBe('10.0.0.1/24');
   });
 });

@@ -73,7 +73,6 @@ steps:
       scope: 'REGIONAL'
       # Security Group configuration
       security-group-id: 'sg-1234567890abcdef0'
-      security-group-description: 'GitHub Actions temporary access'
       region: 'us-east-1'
 ```
 
@@ -142,7 +141,7 @@ jobs:
 | `scope` | The scope of the IPSet (`CLOUDFRONT` or `REGIONAL`) | ❌ No* | `REGIONAL` |
 | `region` | The AWS region | ✅ Yes | `us-east-1` |
 | `security-group-id` | The ID of the Security Group | ❌ No* | |
-| `security-group-description` | Description for the Security Group rule | ❌ No | `Temporary access from GitHub Actions runner` |
+
 
 *At least one target must be specified: either WAF IPSet configuration (`id`, `name`, `scope`) or Security Group configuration (`security-group-id`), or both.
 
