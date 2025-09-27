@@ -4,11 +4,12 @@
 [![Release](https://github.com/digglife/aws-waf-temp-access/actions/workflows/release.yml/badge.svg)](https://github.com/digglife/aws-waf-temp-access/actions/workflows/release.yml)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-aws--waf--temp--access-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAM6wAADOsB5dZE0gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAERSURBVCiRhZG/SsMxFEZPfsVJ61jbxaF0cRQRcRJ9hlYn30IHN/+9iquDCOIsblIrOjqKgy5aKoJQj4n3EX+GvTUXAstGoCU+h9oeRJXbCxNyPF1wIv1b3rh+E6K2Uq3tpv0tDmPU6A4hJiNm5prtZs/M12VKQjOGqVxJA3U5DU6PCCi6N8vkLMJOA/xH3/JhVhj9SWHBV5hCOFzO1PSI6o2E6JbOjyeBa3MFQl9aLl5CKNHd9TYW6+UWXNBg6vtJ+IhhDo4/BnJW0hKePEJJJH6fWGIXg+lNmcCy6mGhc9VuIU+4DsL8W9vBGJJCO4dWh3S4hZHjpTf8k/YB8LkNfhj8DgEP5z/IkBcHHR5nOJ8AAAAASUVORK5CYII=)](https://github.com/marketplace/actions/aws-waf-temp-access)
 
-A GitHub Action that automatically adds the current GitHub runner's public IP address to an AWS WAF IPSet and removes it after the workflow completes. This is useful for allowing temporary access from GitHub Actions runners to resources protected by AWS WAF.
+A GitHub Action that automatically adds the current GitHub runner's public IP address to AWS WAF IPSets and/or Security Groups and removes it after the workflow completes. This is useful for allowing temporary access from GitHub Actions runners to resources protected by AWS WAF or Security Groups.
 
 ## Features
 
-- ✅ Automatically detects and adds the GitHub runner's public IP to an AWS WAF IPSet
+- ✅ Automatically detects and adds the GitHub runner's public IP to AWS WAF IPSets and/or Security Groups
+- ✅ Supports both AWS WAF IPSets and EC2 Security Groups (can be used independently or together)
 - ✅ Removes the IP address after the workflow completes (success or failure)
 - ✅ Supports optimistic locking to handle concurrent access to the same IPSet
 - ✅ Works with both CloudFront (CLOUDFRONT) and Regional (REGIONAL) IPSets
@@ -16,6 +17,66 @@ A GitHub Action that automatically adds the current GitHub runner's public IP ad
 - ✅ Uses the latest AWS SDK v3
 
 ## Usage
+
+### WAF IPSet Only (Original behavior)
+
+```yaml
+steps:
+  - name: Configure AWS credentials
+    uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
+      aws-region: us-east-1
+      
+  - name: Add runner IP to WAF IPSet
+    uses: digglife/aws-waf-temp-access@v1
+    with:
+      id: 'your-ipset-id-here'
+      name: 'your-ipset-name'
+      scope: 'REGIONAL'
+      region: 'us-east-1'
+```
+
+### Security Group Only (New)
+
+```yaml
+steps:
+  - name: Configure AWS credentials
+    uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
+      aws-region: us-east-1
+      
+  - name: Add runner IP to Security Group
+    uses: digglife/aws-waf-temp-access@v1
+    with:
+      security-group-id: 'sg-1234567890abcdef0'
+      security-group-description: 'GitHub Actions temporary access'
+      region: 'us-east-1'
+```
+
+### Both WAF IPSet and Security Group (New)
+
+```yaml
+steps:
+  - name: Configure AWS credentials
+    uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
+      aws-region: us-east-1
+      
+  - name: Add runner IP to WAF IPSet and Security Group
+    uses: digglife/aws-waf-temp-access@v1
+    with:
+      # WAF IPSet configuration
+      id: 'your-ipset-id-here'
+      name: 'your-ipset-name'
+      scope: 'REGIONAL'
+      # Security Group configuration
+      security-group-id: 'sg-1234567890abcdef0'
+      security-group-description: 'GitHub Actions temporary access'
+      region: 'us-east-1'
+```
 
 ### Basic Usage
 
@@ -77,21 +138,28 @@ jobs:
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `id` | The ID of the IPSet | ✅ Yes | |
-| `name` | The name of the IPSet | ✅ Yes | |
-| `scope` | The scope of the IPSet (`CLOUDFRONT` or `REGIONAL`) | ✅ Yes | `REGIONAL` |
-| `region` | The AWS region for the IPSet | ✅ Yes | `us-east-1` |
+| `id` | The ID of the IPSet | ❌ No* | |
+| `name` | The name of the IPSet | ❌ No* | |
+| `scope` | The scope of the IPSet (`CLOUDFRONT` or `REGIONAL`) | ❌ No* | `REGIONAL` |
+| `region` | The AWS region | ✅ Yes | `us-east-1` |
+| `security-group-id` | The ID of the Security Group | ❌ No* | |
+| `security-group-description` | Description for the Security Group rule | ❌ No | `Temporary access from GitHub Actions runner` |
+
+
+*At least one target must be specified: either WAF IPSet configuration (`id`, `name`, `scope`) or Security Group configuration (`security-group-id`), or both.
 
 ## Outputs
 
 | Output | Description |
 |--------|-------------|
-| `ip-address` | The public IP address that was added to the IPSet |
+| `ip-address` | The public IP address that was added to the IPSet/Security Group |
 | `status` | Status of the operation (`success` or `failed`) |
 
 ## AWS Permissions
 
-The action requires the following AWS IAM permissions:
+The action requires different AWS IAM permissions depending on which services you're using:
+
+### For WAF IPSets only:
 
 ```json
 {
@@ -109,7 +177,51 @@ The action requires the following AWS IAM permissions:
 }
 ```
 
-For more restrictive permissions, you can specify the exact IPSet ARN:
+### For Security Groups only:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupIngress"
+      ],
+      "Resource": "arn:aws:ec2:*:*:security-group/*"
+    }
+  ]
+}
+```
+
+### For both WAF IPSets and Security Groups:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "wafv2:GetIPSet",
+        "wafv2:UpdateIPSet"
+      ],
+      "Resource": "arn:aws:wafv2:*:*:*/ipset/*/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupIngress"
+      ],
+      "Resource": "arn:aws:ec2:*:*:security-group/*"
+    }
+  ]
+}
+```
+
+For more restrictive permissions, you can specify exact ARNs:
 
 ```json
 {
@@ -174,15 +286,17 @@ If running on self-hosted runners with IAM roles attached, no explicit credentia
 ## How It Works
 
 1. **IP Detection**: The action detects the public IP address of the GitHub runner using external services
-2. **IPSet Update**: Adds the IP address (with /32 CIDR) to the specified AWS WAF IPSet
-3. **Locking**: Uses AWS WAF's optimistic locking to handle concurrent updates safely
-4. **Cleanup**: Automatically removes the IP address when the workflow completes (via post-action)
+2. **Target Updates**: Depending on configuration:
+   - **WAF IPSet**: Adds the IP address (with /32 CIDR) to the specified AWS WAF IPSet using optimistic locking
+   - **Security Group**: Adds an HTTPS (port 443) ingress rule for the IP address (with /32 CIDR) to the specified Security Group
+3. **Concurrent Handling**: Uses retry logic with exponential backoff to handle concurrent updates safely
+4. **Cleanup**: Automatically removes the IP address from all configured targets when the workflow completes (via post-action)
 
 ## Concurrent Usage
 
-The action supports multiple workflows running simultaneously against the same IPSet through:
-- Optimistic locking with automatic retry logic
-- Exponential backoff with jitter for lock conflicts
+The action supports multiple workflows running simultaneously against the same targets through:
+- **WAF IPSets**: Optimistic locking with automatic retry logic and exponential backoff with jitter for lock conflicts
+- **Security Groups**: Retry logic with exponential backoff to handle transient API errors
 - Safe addition/removal of IP addresses without affecting other entries
 
 ## Error Handling
@@ -209,14 +323,19 @@ The action supports multiple workflows running simultaneously against the same I
 
 **Error: "Access Denied"**
 - Verify AWS credentials are correct
-- Check IAM permissions include `wafv2:GetIPSet` and `wafv2:UpdateIPSet`
-- Ensure the IPSet exists and the ID/name are correct
+- For WAF: Check IAM permissions include `wafv2:GetIPSet` and `wafv2:UpdateIPSet`
+- For Security Groups: Check IAM permissions include `ec2:AuthorizeSecurityGroupIngress` and `ec2:RevokeSecurityGroupIngresss`
+- Ensure the IPSet/Security Group exists and the ID/name are correct
 
-**Error: "IPSet not found"**
+**Error: "IPSet not found" or "Security Group not found"**
 - Verify the IPSet ID, name, scope, and region are correct
-- Ensure the IPSet exists in the specified region
+- Verify the Security Group ID and region are correct
+- Ensure the resources exist in the specified region
 
-**Lock conflicts persist**
+**Error: "Either WAF IPSet configuration or Security Group configuration must be provided"**
+- You must specify at least one target: either WAF IPSet inputs (`id`, `name`, `scope`) or Security Group input (`security-group-id`)
+
+**Lock conflicts persist (WAF only)**
 - This is normal with high concurrency; the action will retry automatically
 - If issues persist, consider staggering workflow starts
 
