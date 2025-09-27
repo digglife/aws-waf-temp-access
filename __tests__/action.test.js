@@ -21,13 +21,17 @@ describe('aws-waf-temp-access', () => {
     
     // Check required inputs
     expect(action.inputs.id).toBeDefined();
-    expect(action.inputs.id.required).toBe(true);
+    expect(action.inputs.id.required).toBe(false);
     expect(action.inputs.name).toBeDefined();
-    expect(action.inputs.name.required).toBe(true);
+    expect(action.inputs.name.required).toBe(false);
     expect(action.inputs.scope).toBeDefined();
-    expect(action.inputs.scope.required).toBe(true);
+    expect(action.inputs.scope.required).toBe(false);
     expect(action.inputs.region).toBeDefined();
     expect(action.inputs.region.required).toBe(true);
+    expect(action.inputs['security-group-id']).toBeDefined();
+    expect(action.inputs['security-group-id'].required).toBe(false);
+    expect(action.inputs['security-group-description']).toBeDefined();
+    expect(action.inputs['security-group-description'].required).toBe(false);
   });
 
   test('dist files should exist', () => {
@@ -52,6 +56,7 @@ describe('aws-waf-temp-access', () => {
     // Check required dependencies
     expect(packageContent.dependencies['@actions/core']).toBeDefined();
     expect(packageContent.dependencies['@aws-sdk/client-wafv2']).toBeDefined();
+    expect(packageContent.dependencies['@aws-sdk/client-ec2']).toBeDefined();
     expect(packageContent.dependencies['axios']).toBeDefined();
     
     // Check dev dependencies

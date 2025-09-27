@@ -10,18 +10,25 @@ branding:
 inputs:
   id:
     description: 'The ID of the IPSet'
-    required: true
+    required: false
   name:
     description: 'The name of the IPSet'
-    required: true
+    required: false
   scope:
     description: 'The scope of the IPSet (CLOUDFRONT or REGIONAL)'
-    required: true
+    required: false
     default: 'REGIONAL'
   region:
     description: 'The AWS region for the IPSet'
     required: true
     default: 'us-east-1'
+  security-group-id:
+    description: 'The ID of the Security Group'
+    required: false
+  security-group-description:
+    description: 'Description for the Security Group rule'
+    required: false
+    default: 'Temporary access from GitHub Actions runner'
 
 runs:
   using: 'node20'

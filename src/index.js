@@ -4,6 +4,10 @@ const {
   UpdateIPSetCommand,
   GetIPSetCommand,
 } = require('@aws-sdk/client-wafv2');
+const {
+  EC2Client,
+  AuthorizeSecurityGroupIngressCommand,
+} = require('@aws-sdk/client-ec2');
 const axios = require('axios');
 
 /**
@@ -43,6 +47,16 @@ function createWAFClient(region) {
   // - IAM roles (for self-hosted runners)
   // - Credentials set by actions like aws-actions/configure-aws-credentials
   return new WAFv2Client({ region });
+}
+
+/**
+ * Configure AWS EC2 client
+ * @param {string} region AWS region
+ * @returns {EC2Client} Configured EC2 client
+ */
+function createEC2Client(region) {
+  // Use AWS SDK default credential chain
+  return new EC2Client({ region });
 }
 
 /**
@@ -123,20 +137,101 @@ async function addIPToIPSet(client, id, name, scope, ipAddress) {
   );
 }
 
+/**
+ * Add IP address to Security Group with retry mechanism
+ * @param {EC2Client} client EC2 client
+ * @param {string} groupId Security Group ID
+ * @param {string} ipAddress IP address to add
+ * @param {string} description Description for the rule
+ */
+async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
+  const maxRetries = 5;
+  const baseDelay = 1000; // 1 second
+
+  const ipWithCidr = ipAddress.includes('/') ? ipAddress : `${ipAddress}/32`;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      core.info(`Adding IP ${ipWithCidr} to Security Group ${groupId}...`);
+
+      const command = new AuthorizeSecurityGroupIngressCommand({
+        GroupId: groupId,
+        IpPermissions: [
+          {
+            IpProtocol: 'tcp',
+            FromPort: 443,
+            ToPort: 443,
+            IpRanges: [
+              {
+                CidrIp: ipWithCidr,
+                Description: description,
+              },
+            ],
+          },
+        ],
+      });
+
+      await client.send(command);
+      core.info(
+        `Successfully added IP ${ipWithCidr} to Security Group ${groupId}`,
+      );
+
+      // Store the information for cleanup
+      core.saveState('sg-runner-ip', ipWithCidr);
+      core.saveState('sg-group-id', groupId);
+      core.saveState('sg-description', description);
+      core.saveState('sg-aws-region', client.config.region);
+
+      return;
+    } catch (error) {
+      if (error.name === 'InvalidPermission.Duplicate') {
+        core.info(`IP ${ipWithCidr} is already allowed in Security Group ${groupId}`);
+        return;
+      }
+
+      if (attempt === maxRetries - 1) {
+        throw error;
+      }
+
+      const delay = baseDelay * Math.pow(2, attempt);
+      core.warning(
+        `Attempt ${attempt + 1} failed, retrying in ${delay}ms... Error: ${error.message}`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 async function main() {
   try {
     // Get inputs
-    const id = core.getInput('id', { required: true });
-    const name = core.getInput('name', { required: true });
-    const scope = core.getInput('scope', { required: true });
+    const id = core.getInput('id');
+    const name = core.getInput('name');
+    const scope = core.getInput('scope');
     const region = core.getInput('region', { required: true });
+    const securityGroupId = core.getInput('security-group-id');
+    const securityGroupDescription = core.getInput('security-group-description');
 
-    core.info(
-      `Starting AWS WAF IPSet update for: ${name} (${id}) in ${region}`,
-    );
+    // Validate that at least one target is specified
+    const hasWafConfig = id && name;
+    const hasSecurityGroupConfig = securityGroupId;
 
-    // Validate scope
-    if (!['CLOUDFRONT', 'REGIONAL'].includes(scope)) {
+    if (!hasWafConfig && !hasSecurityGroupConfig) {
+      throw new Error(
+        'Either WAF IPSet configuration (id, name) or Security Group configuration (security-group-id) must be provided',
+      );
+    }
+
+    core.info(`Starting AWS access management in ${region}`);
+    if (hasWafConfig) {
+      core.info(`WAF IPSet target: ${name} (${id})`);
+    }
+    if (hasSecurityGroupConfig) {
+      core.info(`Security Group target: ${securityGroupId}`);
+    }
+
+    // Validate WAF scope if WAF is configured
+    if (hasWafConfig && !['CLOUDFRONT', 'REGIONAL'].includes(scope)) {
       throw new Error(
         `Invalid scope: ${scope}. Must be CLOUDFRONT or REGIONAL`,
       );
@@ -147,11 +242,22 @@ async function main() {
     const publicIP = await getPublicIP();
     core.info(`Public IP detected: ${publicIP}`);
 
-    // Create WAF client
-    const wafClient = createWAFClient(region);
+    // Handle WAF IPSet if configured
+    if (hasWafConfig) {
+      const wafClient = createWAFClient(region);
+      await addIPToIPSet(wafClient, id, name, scope, publicIP);
+    }
 
-    // Add IP to IPSet
-    await addIPToIPSet(wafClient, id, name, scope, publicIP);
+    // Handle Security Group if configured
+    if (hasSecurityGroupConfig) {
+      const ec2Client = createEC2Client(region);
+      await addIPToSecurityGroup(
+        ec2Client,
+        securityGroupId,
+        publicIP,
+        securityGroupDescription,
+      );
+    }
 
     core.setOutput('ip-address', publicIP);
     core.setOutput('status', 'success');
