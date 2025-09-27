@@ -117,8 +117,9 @@ async function removeIPFromIPSet(client, id, name, scope, ipAddress) {
  * @param {EC2Client} client EC2 client
  * @param {string} groupId Security Group ID
  * @param {string} ipAddress IP address to remove
+ * @param {string} description Description for the rule
  */
-async function removeIPFromSecurityGroup(client, groupId, ipAddress) {
+async function removeIPFromSecurityGroup(client, groupId, ipAddress, description) {
   const maxRetries = 5;
   const baseDelay = 1000; // 1 second
 
@@ -138,7 +139,7 @@ async function removeIPFromSecurityGroup(client, groupId, ipAddress) {
             IpRanges: [
               {
                 CidrIp: ipAddress,
-                Description: 'Temporary access from GitHub Actions runner',
+                Description: description || 'Temporary access from GitHub Actions runner',
               },
             ],
           },
@@ -188,6 +189,7 @@ async function cleanup() {
     // Get Security Group state
     const sgRunnerIP = core.getState('sg-runner-ip');
     const sgGroupId = core.getState('sg-group-id');
+    const sgDescription = core.getState('sg-description');
     const sgAwsRegion = core.getState('sg-aws-region');
 
     const hasWafState = runnerIP && ipsetId && ipsetName && ipsetScope && awsRegion;
@@ -227,6 +229,7 @@ async function cleanup() {
         ec2Client,
         sgGroupId,
         sgRunnerIP,
+        sgDescription,
       );
 
       core.info('Security Group cleanup completed successfully');

@@ -142,8 +142,9 @@ async function addIPToIPSet(client, id, name, scope, ipAddress) {
  * @param {EC2Client} client EC2 client
  * @param {string} groupId Security Group ID
  * @param {string} ipAddress IP address to add
+ * @param {string} description Description for the rule
  */
-async function addIPToSecurityGroup(client, groupId, ipAddress) {
+async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
   const maxRetries = 5;
   const baseDelay = 1000; // 1 second
 
@@ -163,7 +164,7 @@ async function addIPToSecurityGroup(client, groupId, ipAddress) {
             IpRanges: [
               {
                 CidrIp: ipWithCidr,
-                Description: 'Temporary access from GitHub Actions runner',
+                Description: description || 'Temporary access from GitHub Actions runner',
               },
             ],
           },
@@ -178,6 +179,7 @@ async function addIPToSecurityGroup(client, groupId, ipAddress) {
       // Store the information for cleanup
       core.saveState('sg-runner-ip', ipWithCidr);
       core.saveState('sg-group-id', groupId);
+      core.saveState('sg-description', description || 'Temporary access from GitHub Actions runner');
       core.saveState('sg-aws-region', client.config.region);
 
       return;
@@ -208,6 +210,7 @@ async function main() {
     const scope = core.getInput('scope');
     const region = core.getInput('region', { required: true });
     const securityGroupId = core.getInput('security-group-id');
+    const securityGroupDescription = core.getInput('security-group-description');
 
     // Validate that at least one target is specified
     const hasWafConfig = id && name;
@@ -252,6 +255,7 @@ async function main() {
         ec2Client,
         securityGroupId,
         publicIP,
+        securityGroupDescription,
       );
     }
 

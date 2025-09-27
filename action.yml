@@ -25,6 +25,10 @@ inputs:
   security-group-id:
     description: 'The ID of the Security Group'
     required: false
+  security-group-description:
+    description: 'Description for the Security Group rule'
+    required: false
+    default: 'Temporary access from GitHub Actions runner'
 
 runs:
   using: 'node20'
