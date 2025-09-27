@@ -264,4 +264,16 @@ async function main() {
 }
 
 // Run the action
-main();
+if (require.main === module) {
+  main();
+}
+
+// Export functions for testing
+module.exports = {
+  getPublicIP,
+  createWAFClient,
+  createEC2Client,
+  addIPToIPSet,
+  addIPToSecurityGroup,
+  main,
+};

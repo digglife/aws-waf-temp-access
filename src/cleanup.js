@@ -241,4 +241,15 @@ async function cleanup() {
 }
 
 // Run cleanup
-cleanup();
+if (require.main === module) {
+  cleanup();
+}
+
+// Export functions for testing
+module.exports = {
+  createWAFClient,
+  createEC2Client,
+  removeIPFromIPSet,
+  removeIPFromSecurityGroup,
+  cleanup,
+};
