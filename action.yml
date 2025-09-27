@@ -1,5 +1,5 @@
 name: 'aws-waf-temp-access'
-description: 'Add GitHub Runner IP to AWS WAF IPSet with automatic cleanup'
+description: 'Add GitHub Runner IP to AWS WAF IPSet and/or Security Group with automatic cleanup'
 author: 'digglife'
 
 # GitHub Marketplace metadata
