@@ -3,11 +3,11 @@ const path = require('path');
 const yaml = require('js-yaml');
 
 // Mock AWS SDK clients and @actions/core for testing
-const mockWAFv2Client = jest.fn();
+const mockWAFV2Client = jest.fn();
 const mockEC2Client = jest.fn();
 
 jest.mock('@aws-sdk/client-wafv2', () => ({
-  WAFv2Client: mockWAFv2Client,
+  WAFV2Client: mockWAFV2Client,
   UpdateIPSetCommand: jest.fn(),
   GetIPSetCommand: jest.fn(),
 }));
@@ -32,12 +32,12 @@ jest.mock('axios', () => ({
   get: jest.fn(),
 }));
 
-const { 
-  getPublicIP, 
-  createWAFClient, 
+const {
+  getPublicIP,
+  createWAFClient,
   createEC2Client,
   addIPToIPSet,
-  addIPToSecurityGroup 
+  addIPToSecurityGroup
 } = require('../src/index.js');
 
 const core = require('@actions/core');
@@ -50,10 +50,10 @@ describe('aws-waf-temp-access', () => {
   test('action.yml should have correct structure', () => {
     const actionPath = path.join(__dirname, '..', 'action.yml');
     expect(fs.existsSync(actionPath)).toBe(true);
-    
+
     const actionContent = fs.readFileSync(actionPath, 'utf8');
     const action = yaml.load(actionContent);
-    
+
     // Check required fields
     expect(action.name).toBe('aws-waf-temp-access');
     expect(action.description).toBeDefined();
@@ -61,7 +61,7 @@ describe('aws-waf-temp-access', () => {
     expect(action.runs.using).toBe('node20');
     expect(action.runs.main).toBe('dist/index.js');
     expect(action.runs.post).toBe('dist/cleanup.js');
-    
+
     // Check required inputs
     expect(action.inputs.id).toBeDefined();
     expect(action.inputs.id.required).toBe(false);
@@ -80,14 +80,14 @@ describe('aws-waf-temp-access', () => {
   test('dist files should exist', () => {
     const mainPath = path.join(__dirname, '..', 'dist', 'index.js');
     const cleanupPath = path.join(__dirname, '..', 'dist', 'cleanup.js');
-    
+
     expect(fs.existsSync(mainPath)).toBe(true);
     expect(fs.existsSync(cleanupPath)).toBe(true);
-    
+
     // Check file sizes are reasonable (should be bundled)
     const mainStats = fs.statSync(mainPath);
     const cleanupStats = fs.statSync(cleanupPath);
-    
+
     expect(mainStats.size).toBeGreaterThan(1000000); // At least 1MB (bundled)
     expect(cleanupStats.size).toBeGreaterThan(1000000); // At least 1MB (bundled)
   });
@@ -95,29 +95,29 @@ describe('aws-waf-temp-access', () => {
   test('package.json should have correct dependencies', () => {
     const packagePath = path.join(__dirname, '..', 'package.json');
     const packageContent = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-    
+
     // Check required dependencies
     expect(packageContent.dependencies['@actions/core']).toBeDefined();
     expect(packageContent.dependencies['@aws-sdk/client-wafv2']).toBeDefined();
     expect(packageContent.dependencies['@aws-sdk/client-ec2']).toBeDefined();
     expect(packageContent.dependencies['axios']).toBeDefined();
-    
+
     // Check dev dependencies
     expect(packageContent.devDependencies['@vercel/ncc']).toBeDefined();
   });
 
-  test('createWAFClient should return WAFv2Client instance', () => {
+  test('createWAFClient should return WAFV2Client instance', () => {
     const region = 'us-east-1';
     const client = createWAFClient(region);
-    
-    expect(mockWAFv2Client).toHaveBeenCalledWith({ region });
+
+    expect(mockWAFV2Client).toHaveBeenCalledWith({ region });
     expect(client).toBeDefined();
   });
 
   test('createEC2Client should return EC2Client instance', () => {
     const region = 'us-west-2';
     const client = createEC2Client(region);
-    
+
     expect(mockEC2Client).toHaveBeenCalledWith({ region });
     expect(client).toBeDefined();
   });
@@ -125,9 +125,9 @@ describe('aws-waf-temp-access', () => {
   test('getPublicIP should return IP from primary service', async () => {
     const mockIP = '192.168.1.1';
     axios.get.mockResolvedValueOnce({ data: `  ${mockIP}  ` });
-    
+
     const result = await getPublicIP();
-    
+
     expect(axios.get).toHaveBeenCalledWith('https://api.ipify.org?format=text', {
       timeout: 10000,
     });
@@ -139,9 +139,9 @@ describe('aws-waf-temp-access', () => {
     axios.get
       .mockRejectedValueOnce(new Error('Primary service failed'))
       .mockResolvedValueOnce({ data: `${mockIP}\n` });
-    
+
     const result = await getPublicIP();
-    
+
     expect(axios.get).toHaveBeenCalledTimes(2);
     expect(axios.get).toHaveBeenNthCalledWith(1, 'https://api.ipify.org?format=text', {
       timeout: 10000,
@@ -156,7 +156,7 @@ describe('aws-waf-temp-access', () => {
     axios.get
       .mockRejectedValueOnce(new Error('Primary service failed'))
       .mockRejectedValueOnce(new Error('Secondary service failed'));
-    
+
     await expect(getPublicIP()).rejects.toThrow('Failed to get public IP: Secondary service failed');
   });
 
@@ -168,12 +168,12 @@ describe('aws-waf-temp-access', () => {
     const groupId = 'sg-123456789';
     const ipAddress = '192.168.1.1';
     const description = 'Test description';
-    
+
     core.info = jest.fn();
     core.saveState = jest.fn();
-    
+
     await addIPToSecurityGroup(mockClient, groupId, ipAddress, description);
-    
+
     expect(mockClient.send).toHaveBeenCalledTimes(1);
     expect(core.saveState).toHaveBeenCalledWith('sg-runner-ip', '192.168.1.1/32');
     expect(core.saveState).toHaveBeenCalledWith('sg-group-id', groupId);
@@ -189,12 +189,12 @@ describe('aws-waf-temp-access', () => {
     };
     const groupId = 'sg-123456789';
     const ipAddress = '10.0.0.0/24';
-    
+
     core.info = jest.fn();
     core.saveState = jest.fn();
-    
+
     await addIPToSecurityGroup(mockClient, groupId, ipAddress); // Test without description (default)
-    
+
     expect(mockClient.send).toHaveBeenCalledTimes(1);
     expect(core.saveState).toHaveBeenCalledWith('sg-runner-ip', '10.0.0.0/24');
     expect(core.saveState).toHaveBeenCalledWith('sg-description', 'Temporary access from GitHub Actions runner');
