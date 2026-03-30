@@ -1,6 +1,6 @@
 const core = require('@actions/core');
 const {
-  WAFv2Client,
+  WAFV2Client,
   UpdateIPSetCommand,
   GetIPSetCommand,
 } = require('@aws-sdk/client-wafv2');
@@ -38,7 +38,7 @@ async function getPublicIP() {
 /**
  * Configure AWS client
  * @param {string} region AWS region
- * @returns {WAFv2Client} Configured WAF client
+ * @returns {WAFV2Client} Configured WAF client
  */
 function createWAFClient(region) {
   // Use AWS SDK default credential chain
@@ -46,7 +46,7 @@ function createWAFClient(region) {
   // - Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
   // - IAM roles (for self-hosted runners)
   // - Credentials set by actions like aws-actions/configure-aws-credentials
-  return new WAFv2Client({ region });
+  return new WAFV2Client({ region });
 }
 
 /**
@@ -61,7 +61,7 @@ function createEC2Client(region) {
 
 /**
  * Add IP address to WAF IPSet with locking mechanism
- * @param {WAFv2Client} client WAF client
+ * @param {WAFV2Client} client WAF client
  * @param {string} id IPSet ID
  * @param {string} name IPSet name
  * @param {string} scope IPSet scope
