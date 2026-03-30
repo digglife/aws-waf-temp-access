@@ -111482,219 +111482,195 @@ exports.InvokeStore = instance;
 /***/ }),
 
 /***/ 9316:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+"use strict";
 
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  CONFIG_USE_DUALSTACK_ENDPOINT: () => CONFIG_USE_DUALSTACK_ENDPOINT,
-  CONFIG_USE_FIPS_ENDPOINT: () => CONFIG_USE_FIPS_ENDPOINT,
-  DEFAULT_USE_DUALSTACK_ENDPOINT: () => DEFAULT_USE_DUALSTACK_ENDPOINT,
-  DEFAULT_USE_FIPS_ENDPOINT: () => DEFAULT_USE_FIPS_ENDPOINT,
-  ENV_USE_DUALSTACK_ENDPOINT: () => ENV_USE_DUALSTACK_ENDPOINT,
-  ENV_USE_FIPS_ENDPOINT: () => ENV_USE_FIPS_ENDPOINT,
-  NODE_REGION_CONFIG_FILE_OPTIONS: () => NODE_REGION_CONFIG_FILE_OPTIONS,
-  NODE_REGION_CONFIG_OPTIONS: () => NODE_REGION_CONFIG_OPTIONS,
-  NODE_USE_DUALSTACK_ENDPOINT_CONFIG_OPTIONS: () => NODE_USE_DUALSTACK_ENDPOINT_CONFIG_OPTIONS,
-  NODE_USE_FIPS_ENDPOINT_CONFIG_OPTIONS: () => NODE_USE_FIPS_ENDPOINT_CONFIG_OPTIONS,
-  REGION_ENV_NAME: () => REGION_ENV_NAME,
-  REGION_INI_NAME: () => REGION_INI_NAME,
-  getRegionInfo: () => getRegionInfo,
-  resolveCustomEndpointsConfig: () => resolveCustomEndpointsConfig,
-  resolveEndpointsConfig: () => resolveEndpointsConfig,
-  resolveRegionConfig: () => resolveRegionConfig
-});
-module.exports = __toCommonJS(index_exports);
 
-// src/endpointsConfig/NodeUseDualstackEndpointConfigOptions.ts
-var import_util_config_provider = __nccwpck_require__(6716);
-var ENV_USE_DUALSTACK_ENDPOINT = "AWS_USE_DUALSTACK_ENDPOINT";
-var CONFIG_USE_DUALSTACK_ENDPOINT = "use_dualstack_endpoint";
-var DEFAULT_USE_DUALSTACK_ENDPOINT = false;
-var NODE_USE_DUALSTACK_ENDPOINT_CONFIG_OPTIONS = {
-  environmentVariableSelector: /* @__PURE__ */ __name((env) => (0, import_util_config_provider.booleanSelector)(env, ENV_USE_DUALSTACK_ENDPOINT, import_util_config_provider.SelectorType.ENV), "environmentVariableSelector"),
-  configFileSelector: /* @__PURE__ */ __name((profile) => (0, import_util_config_provider.booleanSelector)(profile, CONFIG_USE_DUALSTACK_ENDPOINT, import_util_config_provider.SelectorType.CONFIG), "configFileSelector"),
-  default: false
+var utilConfigProvider = __nccwpck_require__(6716);
+var utilMiddleware = __nccwpck_require__(6324);
+var utilEndpoints = __nccwpck_require__(9674);
+
+const ENV_USE_DUALSTACK_ENDPOINT = "AWS_USE_DUALSTACK_ENDPOINT";
+const CONFIG_USE_DUALSTACK_ENDPOINT = "use_dualstack_endpoint";
+const DEFAULT_USE_DUALSTACK_ENDPOINT = false;
+const NODE_USE_DUALSTACK_ENDPOINT_CONFIG_OPTIONS = {
+    environmentVariableSelector: (env) => utilConfigProvider.booleanSelector(env, ENV_USE_DUALSTACK_ENDPOINT, utilConfigProvider.SelectorType.ENV),
+    configFileSelector: (profile) => utilConfigProvider.booleanSelector(profile, CONFIG_USE_DUALSTACK_ENDPOINT, utilConfigProvider.SelectorType.CONFIG),
+    default: false,
 };
 
-// src/endpointsConfig/NodeUseFipsEndpointConfigOptions.ts
-
-var ENV_USE_FIPS_ENDPOINT = "AWS_USE_FIPS_ENDPOINT";
-var CONFIG_USE_FIPS_ENDPOINT = "use_fips_endpoint";
-var DEFAULT_USE_FIPS_ENDPOINT = false;
-var NODE_USE_FIPS_ENDPOINT_CONFIG_OPTIONS = {
-  environmentVariableSelector: /* @__PURE__ */ __name((env) => (0, import_util_config_provider.booleanSelector)(env, ENV_USE_FIPS_ENDPOINT, import_util_config_provider.SelectorType.ENV), "environmentVariableSelector"),
-  configFileSelector: /* @__PURE__ */ __name((profile) => (0, import_util_config_provider.booleanSelector)(profile, CONFIG_USE_FIPS_ENDPOINT, import_util_config_provider.SelectorType.CONFIG), "configFileSelector"),
-  default: false
+const ENV_USE_FIPS_ENDPOINT = "AWS_USE_FIPS_ENDPOINT";
+const CONFIG_USE_FIPS_ENDPOINT = "use_fips_endpoint";
+const DEFAULT_USE_FIPS_ENDPOINT = false;
+const NODE_USE_FIPS_ENDPOINT_CONFIG_OPTIONS = {
+    environmentVariableSelector: (env) => utilConfigProvider.booleanSelector(env, ENV_USE_FIPS_ENDPOINT, utilConfigProvider.SelectorType.ENV),
+    configFileSelector: (profile) => utilConfigProvider.booleanSelector(profile, CONFIG_USE_FIPS_ENDPOINT, utilConfigProvider.SelectorType.CONFIG),
+    default: false,
 };
 
-// src/endpointsConfig/resolveCustomEndpointsConfig.ts
-var import_util_middleware = __nccwpck_require__(6324);
-var resolveCustomEndpointsConfig = /* @__PURE__ */ __name((input) => {
-  const { tls, endpoint, urlParser, useDualstackEndpoint } = input;
-  return Object.assign(input, {
-    tls: tls ?? true,
-    endpoint: (0, import_util_middleware.normalizeProvider)(typeof endpoint === "string" ? urlParser(endpoint) : endpoint),
-    isCustomEndpoint: true,
-    useDualstackEndpoint: (0, import_util_middleware.normalizeProvider)(useDualstackEndpoint ?? false)
-  });
-}, "resolveCustomEndpointsConfig");
-
-// src/endpointsConfig/resolveEndpointsConfig.ts
-
-
-// src/endpointsConfig/utils/getEndpointFromRegion.ts
-var getEndpointFromRegion = /* @__PURE__ */ __name(async (input) => {
-  const { tls = true } = input;
-  const region = await input.region();
-  const dnsHostRegex = new RegExp(/^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])$/);
-  if (!dnsHostRegex.test(region)) {
-    throw new Error("Invalid region in client config");
-  }
-  const useDualstackEndpoint = await input.useDualstackEndpoint();
-  const useFipsEndpoint = await input.useFipsEndpoint();
-  const { hostname } = await input.regionInfoProvider(region, { useDualstackEndpoint, useFipsEndpoint }) ?? {};
-  if (!hostname) {
-    throw new Error("Cannot resolve hostname from client config");
-  }
-  return input.urlParser(`${tls ? "https:" : "http:"}//${hostname}`);
-}, "getEndpointFromRegion");
-
-// src/endpointsConfig/resolveEndpointsConfig.ts
-var resolveEndpointsConfig = /* @__PURE__ */ __name((input) => {
-  const useDualstackEndpoint = (0, import_util_middleware.normalizeProvider)(input.useDualstackEndpoint ?? false);
-  const { endpoint, useFipsEndpoint, urlParser, tls } = input;
-  return Object.assign(input, {
-    tls: tls ?? true,
-    endpoint: endpoint ? (0, import_util_middleware.normalizeProvider)(typeof endpoint === "string" ? urlParser(endpoint) : endpoint) : () => getEndpointFromRegion({ ...input, useDualstackEndpoint, useFipsEndpoint }),
-    isCustomEndpoint: !!endpoint,
-    useDualstackEndpoint
-  });
-}, "resolveEndpointsConfig");
-
-// src/regionConfig/config.ts
-var REGION_ENV_NAME = "AWS_REGION";
-var REGION_INI_NAME = "region";
-var NODE_REGION_CONFIG_OPTIONS = {
-  environmentVariableSelector: /* @__PURE__ */ __name((env) => env[REGION_ENV_NAME], "environmentVariableSelector"),
-  configFileSelector: /* @__PURE__ */ __name((profile) => profile[REGION_INI_NAME], "configFileSelector"),
-  default: /* @__PURE__ */ __name(() => {
-    throw new Error("Region is missing");
-  }, "default")
-};
-var NODE_REGION_CONFIG_FILE_OPTIONS = {
-  preferredFile: "credentials"
+const resolveCustomEndpointsConfig = (input) => {
+    const { tls, endpoint, urlParser, useDualstackEndpoint } = input;
+    return Object.assign(input, {
+        tls: tls ?? true,
+        endpoint: utilMiddleware.normalizeProvider(typeof endpoint === "string" ? urlParser(endpoint) : endpoint),
+        isCustomEndpoint: true,
+        useDualstackEndpoint: utilMiddleware.normalizeProvider(useDualstackEndpoint ?? false),
+    });
 };
 
-// src/regionConfig/isFipsRegion.ts
-var isFipsRegion = /* @__PURE__ */ __name((region) => typeof region === "string" && (region.startsWith("fips-") || region.endsWith("-fips")), "isFipsRegion");
-
-// src/regionConfig/getRealRegion.ts
-var getRealRegion = /* @__PURE__ */ __name((region) => isFipsRegion(region) ? ["fips-aws-global", "aws-fips"].includes(region) ? "us-east-1" : region.replace(/fips-(dkr-|prod-)?|-fips/, "") : region, "getRealRegion");
-
-// src/regionConfig/resolveRegionConfig.ts
-var resolveRegionConfig = /* @__PURE__ */ __name((input) => {
-  const { region, useFipsEndpoint } = input;
-  if (!region) {
-    throw new Error("Region is missing");
-  }
-  return Object.assign(input, {
-    region: /* @__PURE__ */ __name(async () => {
-      if (typeof region === "string") {
-        return getRealRegion(region);
-      }
-      const providedRegion = await region();
-      return getRealRegion(providedRegion);
-    }, "region"),
-    useFipsEndpoint: /* @__PURE__ */ __name(async () => {
-      const providedRegion = typeof region === "string" ? region : await region();
-      if (isFipsRegion(providedRegion)) {
-        return true;
-      }
-      return typeof useFipsEndpoint !== "function" ? Promise.resolve(!!useFipsEndpoint) : useFipsEndpoint();
-    }, "useFipsEndpoint")
-  });
-}, "resolveRegionConfig");
-
-// src/regionInfo/getHostnameFromVariants.ts
-var getHostnameFromVariants = /* @__PURE__ */ __name((variants = [], { useFipsEndpoint, useDualstackEndpoint }) => variants.find(
-  ({ tags }) => useFipsEndpoint === tags.includes("fips") && useDualstackEndpoint === tags.includes("dualstack")
-)?.hostname, "getHostnameFromVariants");
-
-// src/regionInfo/getResolvedHostname.ts
-var getResolvedHostname = /* @__PURE__ */ __name((resolvedRegion, { regionHostname, partitionHostname }) => regionHostname ? regionHostname : partitionHostname ? partitionHostname.replace("{region}", resolvedRegion) : void 0, "getResolvedHostname");
-
-// src/regionInfo/getResolvedPartition.ts
-var getResolvedPartition = /* @__PURE__ */ __name((region, { partitionHash }) => Object.keys(partitionHash || {}).find((key) => partitionHash[key].regions.includes(region)) ?? "aws", "getResolvedPartition");
-
-// src/regionInfo/getResolvedSigningRegion.ts
-var getResolvedSigningRegion = /* @__PURE__ */ __name((hostname, { signingRegion, regionRegex, useFipsEndpoint }) => {
-  if (signingRegion) {
-    return signingRegion;
-  } else if (useFipsEndpoint) {
-    const regionRegexJs = regionRegex.replace("\\\\", "\\").replace(/^\^/g, "\\.").replace(/\$$/g, "\\.");
-    const regionRegexmatchArray = hostname.match(regionRegexJs);
-    if (regionRegexmatchArray) {
-      return regionRegexmatchArray[0].slice(1, -1);
+const getEndpointFromRegion = async (input) => {
+    const { tls = true } = input;
+    const region = await input.region();
+    const dnsHostRegex = new RegExp(/^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])$/);
+    if (!dnsHostRegex.test(region)) {
+        throw new Error("Invalid region in client config");
     }
-  }
-}, "getResolvedSigningRegion");
-
-// src/regionInfo/getRegionInfo.ts
-var getRegionInfo = /* @__PURE__ */ __name((region, {
-  useFipsEndpoint = false,
-  useDualstackEndpoint = false,
-  signingService,
-  regionHash,
-  partitionHash
-}) => {
-  const partition = getResolvedPartition(region, { partitionHash });
-  const resolvedRegion = region in regionHash ? region : partitionHash[partition]?.endpoint ?? region;
-  const hostnameOptions = { useFipsEndpoint, useDualstackEndpoint };
-  const regionHostname = getHostnameFromVariants(regionHash[resolvedRegion]?.variants, hostnameOptions);
-  const partitionHostname = getHostnameFromVariants(partitionHash[partition]?.variants, hostnameOptions);
-  const hostname = getResolvedHostname(resolvedRegion, { regionHostname, partitionHostname });
-  if (hostname === void 0) {
-    throw new Error(`Endpoint resolution failed for: ${{ resolvedRegion, useFipsEndpoint, useDualstackEndpoint }}`);
-  }
-  const signingRegion = getResolvedSigningRegion(hostname, {
-    signingRegion: regionHash[resolvedRegion]?.signingRegion,
-    regionRegex: partitionHash[partition].regionRegex,
-    useFipsEndpoint
-  });
-  return {
-    partition,
-    signingService,
-    hostname,
-    ...signingRegion && { signingRegion },
-    ...regionHash[resolvedRegion]?.signingService && {
-      signingService: regionHash[resolvedRegion].signingService
+    const useDualstackEndpoint = await input.useDualstackEndpoint();
+    const useFipsEndpoint = await input.useFipsEndpoint();
+    const { hostname } = (await input.regionInfoProvider(region, { useDualstackEndpoint, useFipsEndpoint })) ?? {};
+    if (!hostname) {
+        throw new Error("Cannot resolve hostname from client config");
     }
-  };
-}, "getRegionInfo");
-// Annotate the CommonJS export names for ESM import in node:
+    return input.urlParser(`${tls ? "https:" : "http:"}//${hostname}`);
+};
 
-0 && (0);
+const resolveEndpointsConfig = (input) => {
+    const useDualstackEndpoint = utilMiddleware.normalizeProvider(input.useDualstackEndpoint ?? false);
+    const { endpoint, useFipsEndpoint, urlParser, tls } = input;
+    return Object.assign(input, {
+        tls: tls ?? true,
+        endpoint: endpoint
+            ? utilMiddleware.normalizeProvider(typeof endpoint === "string" ? urlParser(endpoint) : endpoint)
+            : () => getEndpointFromRegion({ ...input, useDualstackEndpoint, useFipsEndpoint }),
+        isCustomEndpoint: !!endpoint,
+        useDualstackEndpoint,
+    });
+};
 
+const REGION_ENV_NAME = "AWS_REGION";
+const REGION_INI_NAME = "region";
+const NODE_REGION_CONFIG_OPTIONS = {
+    environmentVariableSelector: (env) => env[REGION_ENV_NAME],
+    configFileSelector: (profile) => profile[REGION_INI_NAME],
+    default: () => {
+        throw new Error("Region is missing");
+    },
+};
+const NODE_REGION_CONFIG_FILE_OPTIONS = {
+    preferredFile: "credentials",
+};
+
+const validRegions = new Set();
+const checkRegion = (region, check = utilEndpoints.isValidHostLabel) => {
+    if (!validRegions.has(region) && !check(region)) {
+        if (region === "*") {
+            console.warn(`@smithy/config-resolver WARN - Please use the caller region instead of "*". See "sigv4a" in https://github.com/aws/aws-sdk-js-v3/blob/main/supplemental-docs/CLIENTS.md.`);
+        }
+        else {
+            throw new Error(`Region not accepted: region="${region}" is not a valid hostname component.`);
+        }
+    }
+    else {
+        validRegions.add(region);
+    }
+};
+
+const isFipsRegion = (region) => typeof region === "string" && (region.startsWith("fips-") || region.endsWith("-fips"));
+
+const getRealRegion = (region) => isFipsRegion(region)
+    ? ["fips-aws-global", "aws-fips"].includes(region)
+        ? "us-east-1"
+        : region.replace(/fips-(dkr-|prod-)?|-fips/, "")
+    : region;
+
+const resolveRegionConfig = (input) => {
+    const { region, useFipsEndpoint } = input;
+    if (!region) {
+        throw new Error("Region is missing");
+    }
+    return Object.assign(input, {
+        region: async () => {
+            const providedRegion = typeof region === "function" ? await region() : region;
+            const realRegion = getRealRegion(providedRegion);
+            checkRegion(realRegion);
+            return realRegion;
+        },
+        useFipsEndpoint: async () => {
+            const providedRegion = typeof region === "string" ? region : await region();
+            if (isFipsRegion(providedRegion)) {
+                return true;
+            }
+            return typeof useFipsEndpoint !== "function" ? Promise.resolve(!!useFipsEndpoint) : useFipsEndpoint();
+        },
+    });
+};
+
+const getHostnameFromVariants = (variants = [], { useFipsEndpoint, useDualstackEndpoint }) => variants.find(({ tags }) => useFipsEndpoint === tags.includes("fips") && useDualstackEndpoint === tags.includes("dualstack"))?.hostname;
+
+const getResolvedHostname = (resolvedRegion, { regionHostname, partitionHostname }) => regionHostname
+    ? regionHostname
+    : partitionHostname
+        ? partitionHostname.replace("{region}", resolvedRegion)
+        : undefined;
+
+const getResolvedPartition = (region, { partitionHash }) => Object.keys(partitionHash || {}).find((key) => partitionHash[key].regions.includes(region)) ?? "aws";
+
+const getResolvedSigningRegion = (hostname, { signingRegion, regionRegex, useFipsEndpoint }) => {
+    if (signingRegion) {
+        return signingRegion;
+    }
+    else if (useFipsEndpoint) {
+        const regionRegexJs = regionRegex.replace("\\\\", "\\").replace(/^\^/g, "\\.").replace(/\$$/g, "\\.");
+        const regionRegexmatchArray = hostname.match(regionRegexJs);
+        if (regionRegexmatchArray) {
+            return regionRegexmatchArray[0].slice(1, -1);
+        }
+    }
+};
+
+const getRegionInfo = (region, { useFipsEndpoint = false, useDualstackEndpoint = false, signingService, regionHash, partitionHash, }) => {
+    const partition = getResolvedPartition(region, { partitionHash });
+    const resolvedRegion = region in regionHash ? region : partitionHash[partition]?.endpoint ?? region;
+    const hostnameOptions = { useFipsEndpoint, useDualstackEndpoint };
+    const regionHostname = getHostnameFromVariants(regionHash[resolvedRegion]?.variants, hostnameOptions);
+    const partitionHostname = getHostnameFromVariants(partitionHash[partition]?.variants, hostnameOptions);
+    const hostname = getResolvedHostname(resolvedRegion, { regionHostname, partitionHostname });
+    if (hostname === undefined) {
+        throw new Error(`Endpoint resolution failed for: ${{ resolvedRegion, useFipsEndpoint, useDualstackEndpoint }}`);
+    }
+    const signingRegion = getResolvedSigningRegion(hostname, {
+        signingRegion: regionHash[resolvedRegion]?.signingRegion,
+        regionRegex: partitionHash[partition].regionRegex,
+        useFipsEndpoint,
+    });
+    return {
+        partition,
+        signingService,
+        hostname,
+        ...(signingRegion && { signingRegion }),
+        ...(regionHash[resolvedRegion]?.signingService && {
+            signingService: regionHash[resolvedRegion].signingService,
+        }),
+    };
+};
+
+exports.CONFIG_USE_DUALSTACK_ENDPOINT = CONFIG_USE_DUALSTACK_ENDPOINT;
+exports.CONFIG_USE_FIPS_ENDPOINT = CONFIG_USE_FIPS_ENDPOINT;
+exports.DEFAULT_USE_DUALSTACK_ENDPOINT = DEFAULT_USE_DUALSTACK_ENDPOINT;
+exports.DEFAULT_USE_FIPS_ENDPOINT = DEFAULT_USE_FIPS_ENDPOINT;
+exports.ENV_USE_DUALSTACK_ENDPOINT = ENV_USE_DUALSTACK_ENDPOINT;
+exports.ENV_USE_FIPS_ENDPOINT = ENV_USE_FIPS_ENDPOINT;
+exports.NODE_REGION_CONFIG_FILE_OPTIONS = NODE_REGION_CONFIG_FILE_OPTIONS;
+exports.NODE_REGION_CONFIG_OPTIONS = NODE_REGION_CONFIG_OPTIONS;
+exports.NODE_USE_DUALSTACK_ENDPOINT_CONFIG_OPTIONS = NODE_USE_DUALSTACK_ENDPOINT_CONFIG_OPTIONS;
+exports.NODE_USE_FIPS_ENDPOINT_CONFIG_OPTIONS = NODE_USE_FIPS_ENDPOINT_CONFIG_OPTIONS;
+exports.REGION_ENV_NAME = REGION_ENV_NAME;
+exports.REGION_INI_NAME = REGION_INI_NAME;
+exports.getRegionInfo = getRegionInfo;
+exports.resolveCustomEndpointsConfig = resolveCustomEndpointsConfig;
+exports.resolveEndpointsConfig = resolveEndpointsConfig;
+exports.resolveRegionConfig = resolveRegionConfig;
 
 
 /***/ }),
@@ -117992,115 +117968,71 @@ var priorityWeights = {
 /***/ }),
 
 /***/ 5704:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  loadConfig: () => loadConfig
-});
-module.exports = __toCommonJS(index_exports);
-
-// src/configLoader.ts
+"use strict";
 
 
-// src/fromEnv.ts
-var import_property_provider = __nccwpck_require__(1238);
+var propertyProvider = __nccwpck_require__(1238);
+var sharedIniFileLoader = __nccwpck_require__(4964);
 
-// src/getSelectorName.ts
 function getSelectorName(functionString) {
-  try {
-    const constants = new Set(Array.from(functionString.match(/([A-Z_]){3,}/g) ?? []));
-    constants.delete("CONFIG");
-    constants.delete("CONFIG_PREFIX_SEPARATOR");
-    constants.delete("ENV");
-    return [...constants].join(", ");
-  } catch (e) {
-    return functionString;
-  }
+    try {
+        const constants = new Set(Array.from(functionString.match(/([A-Z_]){3,}/g) ?? []));
+        constants.delete("CONFIG");
+        constants.delete("CONFIG_PREFIX_SEPARATOR");
+        constants.delete("ENV");
+        return [...constants].join(", ");
+    }
+    catch (e) {
+        return functionString;
+    }
 }
-__name(getSelectorName, "getSelectorName");
 
-// src/fromEnv.ts
-var fromEnv = /* @__PURE__ */ __name((envVarSelector, options) => async () => {
-  try {
-    const config = envVarSelector(process.env, options);
-    if (config === void 0) {
-      throw new Error();
+const fromEnv = (envVarSelector, options) => async () => {
+    try {
+        const config = envVarSelector(process.env, options);
+        if (config === undefined) {
+            throw new Error();
+        }
+        return config;
     }
-    return config;
-  } catch (e) {
-    throw new import_property_provider.CredentialsProviderError(
-      e.message || `Not found in ENV: ${getSelectorName(envVarSelector.toString())}`,
-      { logger: options?.logger }
-    );
-  }
-}, "fromEnv");
-
-// src/fromSharedConfigFiles.ts
-
-var import_shared_ini_file_loader = __nccwpck_require__(4964);
-var fromSharedConfigFiles = /* @__PURE__ */ __name((configSelector, { preferredFile = "config", ...init } = {}) => async () => {
-  const profile = (0, import_shared_ini_file_loader.getProfileName)(init);
-  const { configFile, credentialsFile } = await (0, import_shared_ini_file_loader.loadSharedConfigFiles)(init);
-  const profileFromCredentials = credentialsFile[profile] || {};
-  const profileFromConfig = configFile[profile] || {};
-  const mergedProfile = preferredFile === "config" ? { ...profileFromCredentials, ...profileFromConfig } : { ...profileFromConfig, ...profileFromCredentials };
-  try {
-    const cfgFile = preferredFile === "config" ? configFile : credentialsFile;
-    const configValue = configSelector(mergedProfile, cfgFile);
-    if (configValue === void 0) {
-      throw new Error();
+    catch (e) {
+        throw new propertyProvider.CredentialsProviderError(e.message || `Not found in ENV: ${getSelectorName(envVarSelector.toString())}`, { logger: options?.logger });
     }
-    return configValue;
-  } catch (e) {
-    throw new import_property_provider.CredentialsProviderError(
-      e.message || `Not found in config files w/ profile [${profile}]: ${getSelectorName(configSelector.toString())}`,
-      { logger: init.logger }
-    );
-  }
-}, "fromSharedConfigFiles");
+};
 
-// src/fromStatic.ts
+const fromSharedConfigFiles = (configSelector, { preferredFile = "config", ...init } = {}) => async () => {
+    const profile = sharedIniFileLoader.getProfileName(init);
+    const { configFile, credentialsFile } = await sharedIniFileLoader.loadSharedConfigFiles(init);
+    const profileFromCredentials = credentialsFile[profile] || {};
+    const profileFromConfig = configFile[profile] || {};
+    const mergedProfile = preferredFile === "config"
+        ? { ...profileFromCredentials, ...profileFromConfig }
+        : { ...profileFromConfig, ...profileFromCredentials };
+    try {
+        const cfgFile = preferredFile === "config" ? configFile : credentialsFile;
+        const configValue = configSelector(mergedProfile, cfgFile);
+        if (configValue === undefined) {
+            throw new Error();
+        }
+        return configValue;
+    }
+    catch (e) {
+        throw new propertyProvider.CredentialsProviderError(e.message || `Not found in config files w/ profile [${profile}]: ${getSelectorName(configSelector.toString())}`, { logger: init.logger });
+    }
+};
 
-var isFunction = /* @__PURE__ */ __name((func) => typeof func === "function", "isFunction");
-var fromStatic = /* @__PURE__ */ __name((defaultValue) => isFunction(defaultValue) ? async () => await defaultValue() : (0, import_property_provider.fromStatic)(defaultValue), "fromStatic");
+const isFunction = (func) => typeof func === "function";
+const fromStatic = (defaultValue) => isFunction(defaultValue) ? async () => await defaultValue() : propertyProvider.fromStatic(defaultValue);
 
-// src/configLoader.ts
-var loadConfig = /* @__PURE__ */ __name(({ environmentVariableSelector, configFileSelector, default: defaultValue }, configuration = {}) => {
-  const { signingName, logger } = configuration;
-  const envOptions = { signingName, logger };
-  return (0, import_property_provider.memoize)(
-    (0, import_property_provider.chain)(
-      fromEnv(environmentVariableSelector, envOptions),
-      fromSharedConfigFiles(configFileSelector, configuration),
-      fromStatic(defaultValue)
-    )
-  );
-}, "loadConfig");
-// Annotate the CommonJS export names for ESM import in node:
+const loadConfig = ({ environmentVariableSelector, configFileSelector, default: defaultValue }, configuration = {}) => {
+    const { signingName, logger } = configuration;
+    const envOptions = { signingName, logger };
+    return propertyProvider.memoize(propertyProvider.chain(fromEnv(environmentVariableSelector, envOptions), fromSharedConfigFiles(configFileSelector, configuration), fromStatic(defaultValue)));
+};
 
-0 && (0);
-
+exports.loadConfig = loadConfig;
 
 
 /***/ }),
@@ -118916,171 +118848,126 @@ __name(collectReadableStream, "collectReadableStream");
 /***/ }),
 
 /***/ 1238:
-/***/ ((module) => {
+/***/ ((__unused_webpack_module, exports) => {
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+"use strict";
 
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  CredentialsProviderError: () => CredentialsProviderError,
-  ProviderError: () => ProviderError,
-  TokenProviderError: () => TokenProviderError,
-  chain: () => chain,
-  fromStatic: () => fromStatic,
-  memoize: () => memoize
-});
-module.exports = __toCommonJS(index_exports);
 
-// src/ProviderError.ts
-var ProviderError = class _ProviderError extends Error {
-  constructor(message, options = true) {
-    let logger;
-    let tryNextLink = true;
-    if (typeof options === "boolean") {
-      logger = void 0;
-      tryNextLink = options;
-    } else if (options != null && typeof options === "object") {
-      logger = options.logger;
-      tryNextLink = options.tryNextLink ?? true;
+class ProviderError extends Error {
+    name = "ProviderError";
+    tryNextLink;
+    constructor(message, options = true) {
+        let logger;
+        let tryNextLink = true;
+        if (typeof options === "boolean") {
+            logger = undefined;
+            tryNextLink = options;
+        }
+        else if (options != null && typeof options === "object") {
+            logger = options.logger;
+            tryNextLink = options.tryNextLink ?? true;
+        }
+        super(message);
+        this.tryNextLink = tryNextLink;
+        Object.setPrototypeOf(this, ProviderError.prototype);
+        logger?.debug?.(`@smithy/property-provider ${tryNextLink ? "->" : "(!)"} ${message}`);
     }
-    super(message);
-    this.name = "ProviderError";
-    this.tryNextLink = tryNextLink;
-    Object.setPrototypeOf(this, _ProviderError.prototype);
-    logger?.debug?.(`@smithy/property-provider ${tryNextLink ? "->" : "(!)"} ${message}`);
-  }
-  static {
-    __name(this, "ProviderError");
-  }
-  /**
-   * @deprecated use new operator.
-   */
-  static from(error, options = true) {
-    return Object.assign(new this(error.message, options), error);
-  }
+    static from(error, options = true) {
+        return Object.assign(new this(error.message, options), error);
+    }
+}
+
+class CredentialsProviderError extends ProviderError {
+    name = "CredentialsProviderError";
+    constructor(message, options = true) {
+        super(message, options);
+        Object.setPrototypeOf(this, CredentialsProviderError.prototype);
+    }
+}
+
+class TokenProviderError extends ProviderError {
+    name = "TokenProviderError";
+    constructor(message, options = true) {
+        super(message, options);
+        Object.setPrototypeOf(this, TokenProviderError.prototype);
+    }
+}
+
+const chain = (...providers) => async () => {
+    if (providers.length === 0) {
+        throw new ProviderError("No providers in chain");
+    }
+    let lastProviderError;
+    for (const provider of providers) {
+        try {
+            const credentials = await provider();
+            return credentials;
+        }
+        catch (err) {
+            lastProviderError = err;
+            if (err?.tryNextLink) {
+                continue;
+            }
+            throw err;
+        }
+    }
+    throw lastProviderError;
 };
 
-// src/CredentialsProviderError.ts
-var CredentialsProviderError = class _CredentialsProviderError extends ProviderError {
-  /**
-   * @override
-   */
-  constructor(message, options = true) {
-    super(message, options);
-    this.name = "CredentialsProviderError";
-    Object.setPrototypeOf(this, _CredentialsProviderError.prototype);
-  }
-  static {
-    __name(this, "CredentialsProviderError");
-  }
-};
+const fromStatic = (staticValue) => () => Promise.resolve(staticValue);
 
-// src/TokenProviderError.ts
-var TokenProviderError = class _TokenProviderError extends ProviderError {
-  /**
-   * @override
-   */
-  constructor(message, options = true) {
-    super(message, options);
-    this.name = "TokenProviderError";
-    Object.setPrototypeOf(this, _TokenProviderError.prototype);
-  }
-  static {
-    __name(this, "TokenProviderError");
-  }
-};
-
-// src/chain.ts
-var chain = /* @__PURE__ */ __name((...providers) => async () => {
-  if (providers.length === 0) {
-    throw new ProviderError("No providers in chain");
-  }
-  let lastProviderError;
-  for (const provider of providers) {
-    try {
-      const credentials = await provider();
-      return credentials;
-    } catch (err) {
-      lastProviderError = err;
-      if (err?.tryNextLink) {
-        continue;
-      }
-      throw err;
-    }
-  }
-  throw lastProviderError;
-}, "chain");
-
-// src/fromStatic.ts
-var fromStatic = /* @__PURE__ */ __name((staticValue) => () => Promise.resolve(staticValue), "fromStatic");
-
-// src/memoize.ts
-var memoize = /* @__PURE__ */ __name((provider, isExpired, requiresRefresh) => {
-  let resolved;
-  let pending;
-  let hasResult;
-  let isConstant = false;
-  const coalesceProvider = /* @__PURE__ */ __name(async () => {
-    if (!pending) {
-      pending = provider();
-    }
-    try {
-      resolved = await pending;
-      hasResult = true;
-      isConstant = false;
-    } finally {
-      pending = void 0;
-    }
-    return resolved;
-  }, "coalesceProvider");
-  if (isExpired === void 0) {
-    return async (options) => {
-      if (!hasResult || options?.forceRefresh) {
-        resolved = await coalesceProvider();
-      }
-      return resolved;
+const memoize = (provider, isExpired, requiresRefresh) => {
+    let resolved;
+    let pending;
+    let hasResult;
+    let isConstant = false;
+    const coalesceProvider = async () => {
+        if (!pending) {
+            pending = provider();
+        }
+        try {
+            resolved = await pending;
+            hasResult = true;
+            isConstant = false;
+        }
+        finally {
+            pending = undefined;
+        }
+        return resolved;
     };
-  }
-  return async (options) => {
-    if (!hasResult || options?.forceRefresh) {
-      resolved = await coalesceProvider();
+    if (isExpired === undefined) {
+        return async (options) => {
+            if (!hasResult || options?.forceRefresh) {
+                resolved = await coalesceProvider();
+            }
+            return resolved;
+        };
     }
-    if (isConstant) {
-      return resolved;
-    }
-    if (requiresRefresh && !requiresRefresh(resolved)) {
-      isConstant = true;
-      return resolved;
-    }
-    if (isExpired(resolved)) {
-      await coalesceProvider();
-      return resolved;
-    }
-    return resolved;
-  };
-}, "memoize");
-// Annotate the CommonJS export names for ESM import in node:
+    return async (options) => {
+        if (!hasResult || options?.forceRefresh) {
+            resolved = await coalesceProvider();
+        }
+        if (isConstant) {
+            return resolved;
+        }
+        if (requiresRefresh && !requiresRefresh(resolved)) {
+            isConstant = true;
+            return resolved;
+        }
+        if (isExpired(resolved)) {
+            await coalesceProvider();
+            return resolved;
+        }
+        return resolved;
+    };
+};
 
-0 && (0);
-
+exports.CredentialsProviderError = CredentialsProviderError;
+exports.ProviderError = ProviderError;
+exports.TokenProviderError = TokenProviderError;
+exports.chain = chain;
+exports.fromStatic = fromStatic;
+exports.memoize = memoize;
 
 
 /***/ }),
@@ -119630,16 +119517,15 @@ exports.getSSOTokenFilepath = getSSOTokenFilepath;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getSSOTokenFromFile = exports.tokenIntercept = void 0;
-const fs_1 = __nccwpck_require__(9896);
+const promises_1 = __nccwpck_require__(1943);
 const getSSOTokenFilepath_1 = __nccwpck_require__(269);
-const { readFile } = fs_1.promises;
 exports.tokenIntercept = {};
 const getSSOTokenFromFile = async (id) => {
     if (exports.tokenIntercept[id]) {
         return exports.tokenIntercept[id];
     }
     const ssoTokenFilepath = (0, getSSOTokenFilepath_1.getSSOTokenFilepath)(id);
-    const ssoTokenText = await readFile(ssoTokenFilepath, "utf8");
+    const ssoTokenText = await (0, promises_1.readFile)(ssoTokenFilepath, "utf8");
     return JSON.parse(ssoTokenText);
 };
 exports.getSSOTokenFromFile = getSSOTokenFromFile;
@@ -119648,249 +119534,227 @@ exports.getSSOTokenFromFile = getSSOTokenFromFile;
 /***/ }),
 
 /***/ 4964:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __reExport = (target, mod, secondTarget) => (__copyProps(target, mod, "default"), secondTarget && __copyProps(secondTarget, mod, "default"));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  CONFIG_PREFIX_SEPARATOR: () => CONFIG_PREFIX_SEPARATOR,
-  DEFAULT_PROFILE: () => DEFAULT_PROFILE,
-  ENV_PROFILE: () => ENV_PROFILE,
-  SSOToken: () => import_getSSOTokenFromFile2.SSOToken,
-  externalDataInterceptor: () => externalDataInterceptor,
-  getProfileName: () => getProfileName,
-  getSSOTokenFromFile: () => import_getSSOTokenFromFile2.getSSOTokenFromFile,
-  loadSharedConfigFiles: () => loadSharedConfigFiles,
-  loadSsoSessionData: () => loadSsoSessionData,
-  parseKnownFiles: () => parseKnownFiles
-});
-module.exports = __toCommonJS(index_exports);
-__reExport(index_exports, __nccwpck_require__(4172), module.exports);
-
-// src/getProfileName.ts
-var ENV_PROFILE = "AWS_PROFILE";
-var DEFAULT_PROFILE = "default";
-var getProfileName = /* @__PURE__ */ __name((init) => init.profile || process.env[ENV_PROFILE] || DEFAULT_PROFILE, "getProfileName");
-
-// src/index.ts
-__reExport(index_exports, __nccwpck_require__(269), module.exports);
-var import_getSSOTokenFromFile2 = __nccwpck_require__(1326);
-
-// src/loadSharedConfigFiles.ts
+"use strict";
 
 
-// src/getConfigData.ts
-var import_types = __nccwpck_require__(690);
-var getConfigData = /* @__PURE__ */ __name((data) => Object.entries(data).filter(([key]) => {
-  const indexOfSeparator = key.indexOf(CONFIG_PREFIX_SEPARATOR);
-  if (indexOfSeparator === -1) {
-    return false;
-  }
-  return Object.values(import_types.IniSectionType).includes(key.substring(0, indexOfSeparator));
-}).reduce(
-  (acc, [key, value]) => {
+var getHomeDir = __nccwpck_require__(4172);
+var getSSOTokenFilepath = __nccwpck_require__(269);
+var getSSOTokenFromFile = __nccwpck_require__(1326);
+var path = __nccwpck_require__(6928);
+var types = __nccwpck_require__(690);
+var readFile = __nccwpck_require__(6684);
+
+const ENV_PROFILE = "AWS_PROFILE";
+const DEFAULT_PROFILE = "default";
+const getProfileName = (init) => init.profile || process.env[ENV_PROFILE] || DEFAULT_PROFILE;
+
+const CONFIG_PREFIX_SEPARATOR = ".";
+
+const getConfigData = (data) => Object.entries(data)
+    .filter(([key]) => {
     const indexOfSeparator = key.indexOf(CONFIG_PREFIX_SEPARATOR);
-    const updatedKey = key.substring(0, indexOfSeparator) === import_types.IniSectionType.PROFILE ? key.substring(indexOfSeparator + 1) : key;
+    if (indexOfSeparator === -1) {
+        return false;
+    }
+    return Object.values(types.IniSectionType).includes(key.substring(0, indexOfSeparator));
+})
+    .reduce((acc, [key, value]) => {
+    const indexOfSeparator = key.indexOf(CONFIG_PREFIX_SEPARATOR);
+    const updatedKey = key.substring(0, indexOfSeparator) === types.IniSectionType.PROFILE ? key.substring(indexOfSeparator + 1) : key;
     acc[updatedKey] = value;
     return acc;
-  },
-  {
-    // Populate default profile, if present.
-    ...data.default && { default: data.default }
-  }
-), "getConfigData");
+}, {
+    ...(data.default && { default: data.default }),
+});
 
-// src/getConfigFilepath.ts
-var import_path = __nccwpck_require__(6928);
-var import_getHomeDir = __nccwpck_require__(4172);
-var ENV_CONFIG_PATH = "AWS_CONFIG_FILE";
-var getConfigFilepath = /* @__PURE__ */ __name(() => process.env[ENV_CONFIG_PATH] || (0, import_path.join)((0, import_getHomeDir.getHomeDir)(), ".aws", "config"), "getConfigFilepath");
+const ENV_CONFIG_PATH = "AWS_CONFIG_FILE";
+const getConfigFilepath = () => process.env[ENV_CONFIG_PATH] || path.join(getHomeDir.getHomeDir(), ".aws", "config");
 
-// src/getCredentialsFilepath.ts
+const ENV_CREDENTIALS_PATH = "AWS_SHARED_CREDENTIALS_FILE";
+const getCredentialsFilepath = () => process.env[ENV_CREDENTIALS_PATH] || path.join(getHomeDir.getHomeDir(), ".aws", "credentials");
 
-var import_getHomeDir2 = __nccwpck_require__(4172);
-var ENV_CREDENTIALS_PATH = "AWS_SHARED_CREDENTIALS_FILE";
-var getCredentialsFilepath = /* @__PURE__ */ __name(() => process.env[ENV_CREDENTIALS_PATH] || (0, import_path.join)((0, import_getHomeDir2.getHomeDir)(), ".aws", "credentials"), "getCredentialsFilepath");
-
-// src/loadSharedConfigFiles.ts
-var import_getHomeDir3 = __nccwpck_require__(4172);
-
-// src/parseIni.ts
-
-var prefixKeyRegex = /^([\w-]+)\s(["'])?([\w-@\+\.%:/]+)\2$/;
-var profileNameBlockList = ["__proto__", "profile __proto__"];
-var parseIni = /* @__PURE__ */ __name((iniData) => {
-  const map = {};
-  let currentSection;
-  let currentSubSection;
-  for (const iniLine of iniData.split(/\r?\n/)) {
-    const trimmedLine = iniLine.split(/(^|\s)[;#]/)[0].trim();
-    const isSection = trimmedLine[0] === "[" && trimmedLine[trimmedLine.length - 1] === "]";
-    if (isSection) {
-      currentSection = void 0;
-      currentSubSection = void 0;
-      const sectionName = trimmedLine.substring(1, trimmedLine.length - 1);
-      const matches = prefixKeyRegex.exec(sectionName);
-      if (matches) {
-        const [, prefix, , name] = matches;
-        if (Object.values(import_types.IniSectionType).includes(prefix)) {
-          currentSection = [prefix, name].join(CONFIG_PREFIX_SEPARATOR);
+const prefixKeyRegex = /^([\w-]+)\s(["'])?([\w-@\+\.%:/]+)\2$/;
+const profileNameBlockList = ["__proto__", "profile __proto__"];
+const parseIni = (iniData) => {
+    const map = {};
+    let currentSection;
+    let currentSubSection;
+    for (const iniLine of iniData.split(/\r?\n/)) {
+        const trimmedLine = iniLine.split(/(^|\s)[;#]/)[0].trim();
+        const isSection = trimmedLine[0] === "[" && trimmedLine[trimmedLine.length - 1] === "]";
+        if (isSection) {
+            currentSection = undefined;
+            currentSubSection = undefined;
+            const sectionName = trimmedLine.substring(1, trimmedLine.length - 1);
+            const matches = prefixKeyRegex.exec(sectionName);
+            if (matches) {
+                const [, prefix, , name] = matches;
+                if (Object.values(types.IniSectionType).includes(prefix)) {
+                    currentSection = [prefix, name].join(CONFIG_PREFIX_SEPARATOR);
+                }
+            }
+            else {
+                currentSection = sectionName;
+            }
+            if (profileNameBlockList.includes(sectionName)) {
+                throw new Error(`Found invalid profile name "${sectionName}"`);
+            }
         }
-      } else {
-        currentSection = sectionName;
-      }
-      if (profileNameBlockList.includes(sectionName)) {
-        throw new Error(`Found invalid profile name "${sectionName}"`);
-      }
-    } else if (currentSection) {
-      const indexOfEqualsSign = trimmedLine.indexOf("=");
-      if (![0, -1].includes(indexOfEqualsSign)) {
-        const [name, value] = [
-          trimmedLine.substring(0, indexOfEqualsSign).trim(),
-          trimmedLine.substring(indexOfEqualsSign + 1).trim()
-        ];
-        if (value === "") {
-          currentSubSection = name;
-        } else {
-          if (currentSubSection && iniLine.trimStart() === iniLine) {
-            currentSubSection = void 0;
-          }
-          map[currentSection] = map[currentSection] || {};
-          const key = currentSubSection ? [currentSubSection, name].join(CONFIG_PREFIX_SEPARATOR) : name;
-          map[currentSection][key] = value;
+        else if (currentSection) {
+            const indexOfEqualsSign = trimmedLine.indexOf("=");
+            if (![0, -1].includes(indexOfEqualsSign)) {
+                const [name, value] = [
+                    trimmedLine.substring(0, indexOfEqualsSign).trim(),
+                    trimmedLine.substring(indexOfEqualsSign + 1).trim(),
+                ];
+                if (value === "") {
+                    currentSubSection = name;
+                }
+                else {
+                    if (currentSubSection && iniLine.trimStart() === iniLine) {
+                        currentSubSection = undefined;
+                    }
+                    map[currentSection] = map[currentSection] || {};
+                    const key = currentSubSection ? [currentSubSection, name].join(CONFIG_PREFIX_SEPARATOR) : name;
+                    map[currentSection][key] = value;
+                }
+            }
         }
-      }
     }
-  }
-  return map;
-}, "parseIni");
-
-// src/loadSharedConfigFiles.ts
-var import_slurpFile = __nccwpck_require__(4246);
-var swallowError = /* @__PURE__ */ __name(() => ({}), "swallowError");
-var CONFIG_PREFIX_SEPARATOR = ".";
-var loadSharedConfigFiles = /* @__PURE__ */ __name(async (init = {}) => {
-  const { filepath = getCredentialsFilepath(), configFilepath = getConfigFilepath() } = init;
-  const homeDir = (0, import_getHomeDir3.getHomeDir)();
-  const relativeHomeDirPrefix = "~/";
-  let resolvedFilepath = filepath;
-  if (filepath.startsWith(relativeHomeDirPrefix)) {
-    resolvedFilepath = (0, import_path.join)(homeDir, filepath.slice(2));
-  }
-  let resolvedConfigFilepath = configFilepath;
-  if (configFilepath.startsWith(relativeHomeDirPrefix)) {
-    resolvedConfigFilepath = (0, import_path.join)(homeDir, configFilepath.slice(2));
-  }
-  const parsedFiles = await Promise.all([
-    (0, import_slurpFile.slurpFile)(resolvedConfigFilepath, {
-      ignoreCache: init.ignoreCache
-    }).then(parseIni).then(getConfigData).catch(swallowError),
-    (0, import_slurpFile.slurpFile)(resolvedFilepath, {
-      ignoreCache: init.ignoreCache
-    }).then(parseIni).catch(swallowError)
-  ]);
-  return {
-    configFile: parsedFiles[0],
-    credentialsFile: parsedFiles[1]
-  };
-}, "loadSharedConfigFiles");
-
-// src/getSsoSessionData.ts
-
-var getSsoSessionData = /* @__PURE__ */ __name((data) => Object.entries(data).filter(([key]) => key.startsWith(import_types.IniSectionType.SSO_SESSION + CONFIG_PREFIX_SEPARATOR)).reduce((acc, [key, value]) => ({ ...acc, [key.substring(key.indexOf(CONFIG_PREFIX_SEPARATOR) + 1)]: value }), {}), "getSsoSessionData");
-
-// src/loadSsoSessionData.ts
-var import_slurpFile2 = __nccwpck_require__(4246);
-var swallowError2 = /* @__PURE__ */ __name(() => ({}), "swallowError");
-var loadSsoSessionData = /* @__PURE__ */ __name(async (init = {}) => (0, import_slurpFile2.slurpFile)(init.configFilepath ?? getConfigFilepath()).then(parseIni).then(getSsoSessionData).catch(swallowError2), "loadSsoSessionData");
-
-// src/mergeConfigFiles.ts
-var mergeConfigFiles = /* @__PURE__ */ __name((...files) => {
-  const merged = {};
-  for (const file of files) {
-    for (const [key, values] of Object.entries(file)) {
-      if (merged[key] !== void 0) {
-        Object.assign(merged[key], values);
-      } else {
-        merged[key] = values;
-      }
-    }
-  }
-  return merged;
-}, "mergeConfigFiles");
-
-// src/parseKnownFiles.ts
-var parseKnownFiles = /* @__PURE__ */ __name(async (init) => {
-  const parsedFiles = await loadSharedConfigFiles(init);
-  return mergeConfigFiles(parsedFiles.configFile, parsedFiles.credentialsFile);
-}, "parseKnownFiles");
-
-// src/externalDataInterceptor.ts
-var import_getSSOTokenFromFile = __nccwpck_require__(1326);
-var import_slurpFile3 = __nccwpck_require__(4246);
-var externalDataInterceptor = {
-  getFileRecord() {
-    return import_slurpFile3.fileIntercept;
-  },
-  interceptFile(path, contents) {
-    import_slurpFile3.fileIntercept[path] = Promise.resolve(contents);
-  },
-  getTokenRecord() {
-    return import_getSSOTokenFromFile.tokenIntercept;
-  },
-  interceptToken(id, contents) {
-    import_getSSOTokenFromFile.tokenIntercept[id] = contents;
-  }
+    return map;
 };
-// Annotate the CommonJS export names for ESM import in node:
 
-0 && (0);
+const swallowError$1 = () => ({});
+const loadSharedConfigFiles = async (init = {}) => {
+    const { filepath = getCredentialsFilepath(), configFilepath = getConfigFilepath() } = init;
+    const homeDir = getHomeDir.getHomeDir();
+    const relativeHomeDirPrefix = "~/";
+    let resolvedFilepath = filepath;
+    if (filepath.startsWith(relativeHomeDirPrefix)) {
+        resolvedFilepath = path.join(homeDir, filepath.slice(2));
+    }
+    let resolvedConfigFilepath = configFilepath;
+    if (configFilepath.startsWith(relativeHomeDirPrefix)) {
+        resolvedConfigFilepath = path.join(homeDir, configFilepath.slice(2));
+    }
+    const parsedFiles = await Promise.all([
+        readFile.readFile(resolvedConfigFilepath, {
+            ignoreCache: init.ignoreCache,
+        })
+            .then(parseIni)
+            .then(getConfigData)
+            .catch(swallowError$1),
+        readFile.readFile(resolvedFilepath, {
+            ignoreCache: init.ignoreCache,
+        })
+            .then(parseIni)
+            .catch(swallowError$1),
+    ]);
+    return {
+        configFile: parsedFiles[0],
+        credentialsFile: parsedFiles[1],
+    };
+};
 
+const getSsoSessionData = (data) => Object.entries(data)
+    .filter(([key]) => key.startsWith(types.IniSectionType.SSO_SESSION + CONFIG_PREFIX_SEPARATOR))
+    .reduce((acc, [key, value]) => ({ ...acc, [key.substring(key.indexOf(CONFIG_PREFIX_SEPARATOR) + 1)]: value }), {});
+
+const swallowError = () => ({});
+const loadSsoSessionData = async (init = {}) => readFile.readFile(init.configFilepath ?? getConfigFilepath())
+    .then(parseIni)
+    .then(getSsoSessionData)
+    .catch(swallowError);
+
+const mergeConfigFiles = (...files) => {
+    const merged = {};
+    for (const file of files) {
+        for (const [key, values] of Object.entries(file)) {
+            if (merged[key] !== undefined) {
+                Object.assign(merged[key], values);
+            }
+            else {
+                merged[key] = values;
+            }
+        }
+    }
+    return merged;
+};
+
+const parseKnownFiles = async (init) => {
+    const parsedFiles = await loadSharedConfigFiles(init);
+    return mergeConfigFiles(parsedFiles.configFile, parsedFiles.credentialsFile);
+};
+
+const externalDataInterceptor = {
+    getFileRecord() {
+        return readFile.fileIntercept;
+    },
+    interceptFile(path, contents) {
+        readFile.fileIntercept[path] = Promise.resolve(contents);
+    },
+    getTokenRecord() {
+        return getSSOTokenFromFile.tokenIntercept;
+    },
+    interceptToken(id, contents) {
+        getSSOTokenFromFile.tokenIntercept[id] = contents;
+    },
+};
+
+Object.defineProperty(exports, "getSSOTokenFromFile", ({
+    enumerable: true,
+    get: function () { return getSSOTokenFromFile.getSSOTokenFromFile; }
+}));
+Object.defineProperty(exports, "readFile", ({
+    enumerable: true,
+    get: function () { return readFile.readFile; }
+}));
+exports.CONFIG_PREFIX_SEPARATOR = CONFIG_PREFIX_SEPARATOR;
+exports.DEFAULT_PROFILE = DEFAULT_PROFILE;
+exports.ENV_PROFILE = ENV_PROFILE;
+exports.externalDataInterceptor = externalDataInterceptor;
+exports.getProfileName = getProfileName;
+exports.loadSharedConfigFiles = loadSharedConfigFiles;
+exports.loadSsoSessionData = loadSsoSessionData;
+exports.parseKnownFiles = parseKnownFiles;
+Object.keys(getHomeDir).forEach(function (k) {
+    if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
+        enumerable: true,
+        get: function () { return getHomeDir[k]; }
+    });
+});
+Object.keys(getSSOTokenFilepath).forEach(function (k) {
+    if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
+        enumerable: true,
+        get: function () { return getSSOTokenFilepath[k]; }
+    });
+});
 
 
 /***/ }),
 
-/***/ 4246:
+/***/ 6684:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.slurpFile = exports.fileIntercept = exports.filePromisesHash = void 0;
-const fs_1 = __nccwpck_require__(9896);
-const { readFile } = fs_1.promises;
-exports.filePromisesHash = {};
+exports.readFile = exports.fileIntercept = exports.filePromises = void 0;
+const promises_1 = __nccwpck_require__(1455);
+exports.filePromises = {};
 exports.fileIntercept = {};
-const slurpFile = (path, options) => {
+const readFile = (path, options) => {
     if (exports.fileIntercept[path] !== undefined) {
         return exports.fileIntercept[path];
     }
-    if (!exports.filePromisesHash[path] || (options === null || options === void 0 ? void 0 : options.ignoreCache)) {
-        exports.filePromisesHash[path] = readFile(path, "utf8");
+    if (!exports.filePromises[path] || options?.ignoreCache) {
+        exports.filePromises[path] = (0, promises_1.readFile)(path, "utf8");
     }
-    return exports.filePromisesHash[path];
+    return exports.filePromises[path];
 };
-exports.slurpFile = slurpFile;
+exports.readFile = readFile;
 
 
 /***/ }),
@@ -121264,141 +121128,100 @@ __reExport(index_exports, __nccwpck_require__(2430), module.exports);
 /***/ }),
 
 /***/ 690:
-/***/ ((module) => {
+/***/ ((__unused_webpack_module, exports) => {
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+"use strict";
 
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  AlgorithmId: () => AlgorithmId,
-  EndpointURLScheme: () => EndpointURLScheme,
-  FieldPosition: () => FieldPosition,
-  HttpApiKeyAuthLocation: () => HttpApiKeyAuthLocation,
-  HttpAuthLocation: () => HttpAuthLocation,
-  IniSectionType: () => IniSectionType,
-  RequestHandlerProtocol: () => RequestHandlerProtocol,
-  SMITHY_CONTEXT_KEY: () => SMITHY_CONTEXT_KEY,
-  getDefaultClientConfiguration: () => getDefaultClientConfiguration,
-  resolveDefaultRuntimeConfig: () => resolveDefaultRuntimeConfig
-});
-module.exports = __toCommonJS(index_exports);
 
-// src/auth/auth.ts
-var HttpAuthLocation = /* @__PURE__ */ ((HttpAuthLocation2) => {
-  HttpAuthLocation2["HEADER"] = "header";
-  HttpAuthLocation2["QUERY"] = "query";
-  return HttpAuthLocation2;
-})(HttpAuthLocation || {});
+exports.HttpAuthLocation = void 0;
+(function (HttpAuthLocation) {
+    HttpAuthLocation["HEADER"] = "header";
+    HttpAuthLocation["QUERY"] = "query";
+})(exports.HttpAuthLocation || (exports.HttpAuthLocation = {}));
 
-// src/auth/HttpApiKeyAuth.ts
-var HttpApiKeyAuthLocation = /* @__PURE__ */ ((HttpApiKeyAuthLocation2) => {
-  HttpApiKeyAuthLocation2["HEADER"] = "header";
-  HttpApiKeyAuthLocation2["QUERY"] = "query";
-  return HttpApiKeyAuthLocation2;
-})(HttpApiKeyAuthLocation || {});
+exports.HttpApiKeyAuthLocation = void 0;
+(function (HttpApiKeyAuthLocation) {
+    HttpApiKeyAuthLocation["HEADER"] = "header";
+    HttpApiKeyAuthLocation["QUERY"] = "query";
+})(exports.HttpApiKeyAuthLocation || (exports.HttpApiKeyAuthLocation = {}));
 
-// src/endpoint.ts
-var EndpointURLScheme = /* @__PURE__ */ ((EndpointURLScheme2) => {
-  EndpointURLScheme2["HTTP"] = "http";
-  EndpointURLScheme2["HTTPS"] = "https";
-  return EndpointURLScheme2;
-})(EndpointURLScheme || {});
+exports.EndpointURLScheme = void 0;
+(function (EndpointURLScheme) {
+    EndpointURLScheme["HTTP"] = "http";
+    EndpointURLScheme["HTTPS"] = "https";
+})(exports.EndpointURLScheme || (exports.EndpointURLScheme = {}));
 
-// src/extensions/checksum.ts
-var AlgorithmId = /* @__PURE__ */ ((AlgorithmId2) => {
-  AlgorithmId2["MD5"] = "md5";
-  AlgorithmId2["CRC32"] = "crc32";
-  AlgorithmId2["CRC32C"] = "crc32c";
-  AlgorithmId2["SHA1"] = "sha1";
-  AlgorithmId2["SHA256"] = "sha256";
-  return AlgorithmId2;
-})(AlgorithmId || {});
-var getChecksumConfiguration = /* @__PURE__ */ __name((runtimeConfig) => {
-  const checksumAlgorithms = [];
-  if (runtimeConfig.sha256 !== void 0) {
-    checksumAlgorithms.push({
-      algorithmId: /* @__PURE__ */ __name(() => "sha256" /* SHA256 */, "algorithmId"),
-      checksumConstructor: /* @__PURE__ */ __name(() => runtimeConfig.sha256, "checksumConstructor")
-    });
-  }
-  if (runtimeConfig.md5 != void 0) {
-    checksumAlgorithms.push({
-      algorithmId: /* @__PURE__ */ __name(() => "md5" /* MD5 */, "algorithmId"),
-      checksumConstructor: /* @__PURE__ */ __name(() => runtimeConfig.md5, "checksumConstructor")
-    });
-  }
-  return {
-    addChecksumAlgorithm(algo) {
-      checksumAlgorithms.push(algo);
-    },
-    checksumAlgorithms() {
-      return checksumAlgorithms;
+exports.AlgorithmId = void 0;
+(function (AlgorithmId) {
+    AlgorithmId["MD5"] = "md5";
+    AlgorithmId["CRC32"] = "crc32";
+    AlgorithmId["CRC32C"] = "crc32c";
+    AlgorithmId["SHA1"] = "sha1";
+    AlgorithmId["SHA256"] = "sha256";
+})(exports.AlgorithmId || (exports.AlgorithmId = {}));
+const getChecksumConfiguration = (runtimeConfig) => {
+    const checksumAlgorithms = [];
+    if (runtimeConfig.sha256 !== undefined) {
+        checksumAlgorithms.push({
+            algorithmId: () => exports.AlgorithmId.SHA256,
+            checksumConstructor: () => runtimeConfig.sha256,
+        });
     }
-  };
-}, "getChecksumConfiguration");
-var resolveChecksumRuntimeConfig = /* @__PURE__ */ __name((clientConfig) => {
-  const runtimeConfig = {};
-  clientConfig.checksumAlgorithms().forEach((checksumAlgorithm) => {
-    runtimeConfig[checksumAlgorithm.algorithmId()] = checksumAlgorithm.checksumConstructor();
-  });
-  return runtimeConfig;
-}, "resolveChecksumRuntimeConfig");
+    if (runtimeConfig.md5 != undefined) {
+        checksumAlgorithms.push({
+            algorithmId: () => exports.AlgorithmId.MD5,
+            checksumConstructor: () => runtimeConfig.md5,
+        });
+    }
+    return {
+        addChecksumAlgorithm(algo) {
+            checksumAlgorithms.push(algo);
+        },
+        checksumAlgorithms() {
+            return checksumAlgorithms;
+        },
+    };
+};
+const resolveChecksumRuntimeConfig = (clientConfig) => {
+    const runtimeConfig = {};
+    clientConfig.checksumAlgorithms().forEach((checksumAlgorithm) => {
+        runtimeConfig[checksumAlgorithm.algorithmId()] = checksumAlgorithm.checksumConstructor();
+    });
+    return runtimeConfig;
+};
 
-// src/extensions/defaultClientConfiguration.ts
-var getDefaultClientConfiguration = /* @__PURE__ */ __name((runtimeConfig) => {
-  return getChecksumConfiguration(runtimeConfig);
-}, "getDefaultClientConfiguration");
-var resolveDefaultRuntimeConfig = /* @__PURE__ */ __name((config) => {
-  return resolveChecksumRuntimeConfig(config);
-}, "resolveDefaultRuntimeConfig");
+const getDefaultClientConfiguration = (runtimeConfig) => {
+    return getChecksumConfiguration(runtimeConfig);
+};
+const resolveDefaultRuntimeConfig = (config) => {
+    return resolveChecksumRuntimeConfig(config);
+};
 
-// src/http.ts
-var FieldPosition = /* @__PURE__ */ ((FieldPosition2) => {
-  FieldPosition2[FieldPosition2["HEADER"] = 0] = "HEADER";
-  FieldPosition2[FieldPosition2["TRAILER"] = 1] = "TRAILER";
-  return FieldPosition2;
-})(FieldPosition || {});
+exports.FieldPosition = void 0;
+(function (FieldPosition) {
+    FieldPosition[FieldPosition["HEADER"] = 0] = "HEADER";
+    FieldPosition[FieldPosition["TRAILER"] = 1] = "TRAILER";
+})(exports.FieldPosition || (exports.FieldPosition = {}));
 
-// src/middleware.ts
-var SMITHY_CONTEXT_KEY = "__smithy_context";
+const SMITHY_CONTEXT_KEY = "__smithy_context";
 
-// src/profile.ts
-var IniSectionType = /* @__PURE__ */ ((IniSectionType2) => {
-  IniSectionType2["PROFILE"] = "profile";
-  IniSectionType2["SSO_SESSION"] = "sso-session";
-  IniSectionType2["SERVICES"] = "services";
-  return IniSectionType2;
-})(IniSectionType || {});
+exports.IniSectionType = void 0;
+(function (IniSectionType) {
+    IniSectionType["PROFILE"] = "profile";
+    IniSectionType["SSO_SESSION"] = "sso-session";
+    IniSectionType["SERVICES"] = "services";
+})(exports.IniSectionType || (exports.IniSectionType = {}));
 
-// src/transfer.ts
-var RequestHandlerProtocol = /* @__PURE__ */ ((RequestHandlerProtocol2) => {
-  RequestHandlerProtocol2["HTTP_0_9"] = "http/0.9";
-  RequestHandlerProtocol2["HTTP_1_0"] = "http/1.0";
-  RequestHandlerProtocol2["TDS_8_0"] = "tds/8.0";
-  return RequestHandlerProtocol2;
-})(RequestHandlerProtocol || {});
-// Annotate the CommonJS export names for ESM import in node:
+exports.RequestHandlerProtocol = void 0;
+(function (RequestHandlerProtocol) {
+    RequestHandlerProtocol["HTTP_0_9"] = "http/0.9";
+    RequestHandlerProtocol["HTTP_1_0"] = "http/1.0";
+    RequestHandlerProtocol["TDS_8_0"] = "tds/8.0";
+})(exports.RequestHandlerProtocol || (exports.RequestHandlerProtocol = {}));
 
-0 && (0);
-
+exports.SMITHY_CONTEXT_KEY = SMITHY_CONTEXT_KEY;
+exports.getDefaultClientConfiguration = getDefaultClientConfiguration;
+exports.resolveDefaultRuntimeConfig = resolveDefaultRuntimeConfig;
 
 
 /***/ }),
@@ -121708,64 +121531,39 @@ var fromString = /* @__PURE__ */ __name((input, encoding) => {
 /***/ }),
 
 /***/ 6716:
-/***/ ((module) => {
+/***/ ((__unused_webpack_module, exports) => {
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
+"use strict";
+
+
+const booleanSelector = (obj, key, type) => {
+    if (!(key in obj))
+        return undefined;
+    if (obj[key] === "true")
+        return true;
+    if (obj[key] === "false")
+        return false;
+    throw new Error(`Cannot load ${type} "${key}". Expected "true" or "false", got ${obj[key]}.`);
 };
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
+
+const numberSelector = (obj, key, type) => {
+    if (!(key in obj))
+        return undefined;
+    const numberValue = parseInt(obj[key], 10);
+    if (Number.isNaN(numberValue)) {
+        throw new TypeError(`Cannot load ${type} '${key}'. Expected number, got '${obj[key]}'.`);
+    }
+    return numberValue;
 };
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  SelectorType: () => SelectorType,
-  booleanSelector: () => booleanSelector,
-  numberSelector: () => numberSelector
-});
-module.exports = __toCommonJS(index_exports);
+exports.SelectorType = void 0;
+(function (SelectorType) {
+    SelectorType["ENV"] = "env";
+    SelectorType["CONFIG"] = "shared config entry";
+})(exports.SelectorType || (exports.SelectorType = {}));
 
-// src/booleanSelector.ts
-var booleanSelector = /* @__PURE__ */ __name((obj, key, type) => {
-  if (!(key in obj)) return void 0;
-  if (obj[key] === "true") return true;
-  if (obj[key] === "false") return false;
-  throw new Error(`Cannot load ${type} "${key}". Expected "true" or "false", got ${obj[key]}.`);
-}, "booleanSelector");
-
-// src/numberSelector.ts
-var numberSelector = /* @__PURE__ */ __name((obj, key, type) => {
-  if (!(key in obj)) return void 0;
-  const numberValue = parseInt(obj[key], 10);
-  if (Number.isNaN(numberValue)) {
-    throw new TypeError(`Cannot load ${type} '${key}'. Expected number, got '${obj[key]}'.`);
-  }
-  return numberValue;
-}, "numberSelector");
-
-// src/types.ts
-var SelectorType = /* @__PURE__ */ ((SelectorType2) => {
-  SelectorType2["ENV"] = "env";
-  SelectorType2["CONFIG"] = "shared config entry";
-  return SelectorType2;
-})(SelectorType || {});
-// Annotate the CommonJS export names for ESM import in node:
-
-0 && (0);
-
+exports.booleanSelector = booleanSelector;
+exports.numberSelector = numberSelector;
 
 
 /***/ }),
@@ -121895,545 +121693,481 @@ var inferPhysicalRegion = /* @__PURE__ */ __name(async () => {
 /***/ }),
 
 /***/ 9674:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+"use strict";
 
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  EndpointCache: () => EndpointCache,
-  EndpointError: () => EndpointError,
-  customEndpointFunctions: () => customEndpointFunctions,
-  isIpAddress: () => isIpAddress,
-  isValidHostLabel: () => isValidHostLabel,
-  resolveEndpoint: () => resolveEndpoint
-});
-module.exports = __toCommonJS(index_exports);
 
-// src/cache/EndpointCache.ts
-var EndpointCache = class {
-  /**
-   * @param [size] - desired average maximum capacity. A buffer of 10 additional keys will be allowed
-   *                 before keys are dropped.
-   * @param [params] - list of params to consider as part of the cache key.
-   *
-   * If the params list is not populated, no caching will happen.
-   * This may be out of order depending on how the object is created and arrives to this class.
-   */
-  constructor({ size, params }) {
-    this.data = /* @__PURE__ */ new Map();
-    this.parameters = [];
-    this.capacity = size ?? 50;
-    if (params) {
-      this.parameters = params;
-    }
-  }
-  static {
-    __name(this, "EndpointCache");
-  }
-  /**
-   * @param endpointParams - query for endpoint.
-   * @param resolver - provider of the value if not present.
-   * @returns endpoint corresponding to the query.
-   */
-  get(endpointParams, resolver) {
-    const key = this.hash(endpointParams);
-    if (key === false) {
-      return resolver();
-    }
-    if (!this.data.has(key)) {
-      if (this.data.size > this.capacity + 10) {
-        const keys = this.data.keys();
-        let i = 0;
-        while (true) {
-          const { value, done } = keys.next();
-          this.data.delete(value);
-          if (done || ++i > 10) {
-            break;
-          }
+var types = __nccwpck_require__(690);
+
+class EndpointCache {
+    capacity;
+    data = new Map();
+    parameters = [];
+    constructor({ size, params }) {
+        this.capacity = size ?? 50;
+        if (params) {
+            this.parameters = params;
         }
-      }
-      this.data.set(key, resolver());
     }
-    return this.data.get(key);
-  }
-  size() {
-    return this.data.size;
-  }
-  /**
-   * @returns cache key or false if not cachable.
-   */
-  hash(endpointParams) {
-    let buffer = "";
-    const { parameters } = this;
-    if (parameters.length === 0) {
-      return false;
+    get(endpointParams, resolver) {
+        const key = this.hash(endpointParams);
+        if (key === false) {
+            return resolver();
+        }
+        if (!this.data.has(key)) {
+            if (this.data.size > this.capacity + 10) {
+                const keys = this.data.keys();
+                let i = 0;
+                while (true) {
+                    const { value, done } = keys.next();
+                    this.data.delete(value);
+                    if (done || ++i > 10) {
+                        break;
+                    }
+                }
+            }
+            this.data.set(key, resolver());
+        }
+        return this.data.get(key);
     }
-    for (const param of parameters) {
-      const val = String(endpointParams[param] ?? "");
-      if (val.includes("|;")) {
-        return false;
-      }
-      buffer += val + "|;";
+    size() {
+        return this.data.size;
     }
-    return buffer;
-  }
-};
-
-// src/lib/isIpAddress.ts
-var IP_V4_REGEX = new RegExp(
-  `^(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}$`
-);
-var isIpAddress = /* @__PURE__ */ __name((value) => IP_V4_REGEX.test(value) || value.startsWith("[") && value.endsWith("]"), "isIpAddress");
-
-// src/lib/isValidHostLabel.ts
-var VALID_HOST_LABEL_REGEX = new RegExp(`^(?!.*-$)(?!-)[a-zA-Z0-9-]{1,63}$`);
-var isValidHostLabel = /* @__PURE__ */ __name((value, allowSubDomains = false) => {
-  if (!allowSubDomains) {
-    return VALID_HOST_LABEL_REGEX.test(value);
-  }
-  const labels = value.split(".");
-  for (const label of labels) {
-    if (!isValidHostLabel(label)) {
-      return false;
+    hash(endpointParams) {
+        let buffer = "";
+        const { parameters } = this;
+        if (parameters.length === 0) {
+            return false;
+        }
+        for (const param of parameters) {
+            const val = String(endpointParams[param] ?? "");
+            if (val.includes("|;")) {
+                return false;
+            }
+            buffer += val + "|;";
+        }
+        return buffer;
     }
-  }
-  return true;
-}, "isValidHostLabel");
-
-// src/utils/customEndpointFunctions.ts
-var customEndpointFunctions = {};
-
-// src/debug/debugId.ts
-var debugId = "endpoints";
-
-// src/debug/toDebugString.ts
-function toDebugString(input) {
-  if (typeof input !== "object" || input == null) {
-    return input;
-  }
-  if ("ref" in input) {
-    return `$${toDebugString(input.ref)}`;
-  }
-  if ("fn" in input) {
-    return `${input.fn}(${(input.argv || []).map(toDebugString).join(", ")})`;
-  }
-  return JSON.stringify(input, null, 2);
 }
-__name(toDebugString, "toDebugString");
 
-// src/types/EndpointError.ts
-var EndpointError = class extends Error {
-  static {
-    __name(this, "EndpointError");
-  }
-  constructor(message) {
-    super(message);
-    this.name = "EndpointError";
-  }
+const IP_V4_REGEX = new RegExp(`^(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}$`);
+const isIpAddress = (value) => IP_V4_REGEX.test(value) || (value.startsWith("[") && value.endsWith("]"));
+
+const VALID_HOST_LABEL_REGEX = new RegExp(`^(?!.*-$)(?!-)[a-zA-Z0-9-]{1,63}$`);
+const isValidHostLabel = (value, allowSubDomains = false) => {
+    if (!allowSubDomains) {
+        return VALID_HOST_LABEL_REGEX.test(value);
+    }
+    const labels = value.split(".");
+    for (const label of labels) {
+        if (!isValidHostLabel(label)) {
+            return false;
+        }
+    }
+    return true;
 };
 
-// src/lib/booleanEquals.ts
-var booleanEquals = /* @__PURE__ */ __name((value1, value2) => value1 === value2, "booleanEquals");
+const customEndpointFunctions = {};
 
-// src/lib/getAttrPathList.ts
-var getAttrPathList = /* @__PURE__ */ __name((path) => {
-  const parts = path.split(".");
-  const pathList = [];
-  for (const part of parts) {
-    const squareBracketIndex = part.indexOf("[");
-    if (squareBracketIndex !== -1) {
-      if (part.indexOf("]") !== part.length - 1) {
-        throw new EndpointError(`Path: '${path}' does not end with ']'`);
-      }
-      const arrayIndex = part.slice(squareBracketIndex + 1, -1);
-      if (Number.isNaN(parseInt(arrayIndex))) {
-        throw new EndpointError(`Invalid array index: '${arrayIndex}' in path: '${path}'`);
-      }
-      if (squareBracketIndex !== 0) {
-        pathList.push(part.slice(0, squareBracketIndex));
-      }
-      pathList.push(arrayIndex);
-    } else {
-      pathList.push(part);
+const debugId = "endpoints";
+
+function toDebugString(input) {
+    if (typeof input !== "object" || input == null) {
+        return input;
     }
-  }
-  return pathList;
-}, "getAttrPathList");
-
-// src/lib/getAttr.ts
-var getAttr = /* @__PURE__ */ __name((value, path) => getAttrPathList(path).reduce((acc, index) => {
-  if (typeof acc !== "object") {
-    throw new EndpointError(`Index '${index}' in '${path}' not found in '${JSON.stringify(value)}'`);
-  } else if (Array.isArray(acc)) {
-    return acc[parseInt(index)];
-  }
-  return acc[index];
-}, value), "getAttr");
-
-// src/lib/isSet.ts
-var isSet = /* @__PURE__ */ __name((value) => value != null, "isSet");
-
-// src/lib/not.ts
-var not = /* @__PURE__ */ __name((value) => !value, "not");
-
-// src/lib/parseURL.ts
-var import_types3 = __nccwpck_require__(690);
-var DEFAULT_PORTS = {
-  [import_types3.EndpointURLScheme.HTTP]: 80,
-  [import_types3.EndpointURLScheme.HTTPS]: 443
-};
-var parseURL = /* @__PURE__ */ __name((value) => {
-  const whatwgURL = (() => {
-    try {
-      if (value instanceof URL) {
-        return value;
-      }
-      if (typeof value === "object" && "hostname" in value) {
-        const { hostname: hostname2, port, protocol: protocol2 = "", path = "", query = {} } = value;
-        const url = new URL(`${protocol2}//${hostname2}${port ? `:${port}` : ""}${path}`);
-        url.search = Object.entries(query).map(([k, v]) => `${k}=${v}`).join("&");
-        return url;
-      }
-      return new URL(value);
-    } catch (error) {
-      return null;
+    if ("ref" in input) {
+        return `$${toDebugString(input.ref)}`;
     }
-  })();
-  if (!whatwgURL) {
-    console.error(`Unable to parse ${JSON.stringify(value)} as a whatwg URL.`);
-    return null;
-  }
-  const urlString = whatwgURL.href;
-  const { host, hostname, pathname, protocol, search } = whatwgURL;
-  if (search) {
-    return null;
-  }
-  const scheme = protocol.slice(0, -1);
-  if (!Object.values(import_types3.EndpointURLScheme).includes(scheme)) {
-    return null;
-  }
-  const isIp = isIpAddress(hostname);
-  const inputContainsDefaultPort = urlString.includes(`${host}:${DEFAULT_PORTS[scheme]}`) || typeof value === "string" && value.includes(`${host}:${DEFAULT_PORTS[scheme]}`);
-  const authority = `${host}${inputContainsDefaultPort ? `:${DEFAULT_PORTS[scheme]}` : ``}`;
-  return {
-    scheme,
-    authority,
-    path: pathname,
-    normalizedPath: pathname.endsWith("/") ? pathname : `${pathname}/`,
-    isIp
-  };
-}, "parseURL");
+    if ("fn" in input) {
+        return `${input.fn}(${(input.argv || []).map(toDebugString).join(", ")})`;
+    }
+    return JSON.stringify(input, null, 2);
+}
 
-// src/lib/stringEquals.ts
-var stringEquals = /* @__PURE__ */ __name((value1, value2) => value1 === value2, "stringEquals");
+class EndpointError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "EndpointError";
+    }
+}
 
-// src/lib/substring.ts
-var substring = /* @__PURE__ */ __name((input, start, stop, reverse) => {
-  if (start >= stop || input.length < stop) {
-    return null;
-  }
-  if (!reverse) {
-    return input.substring(start, stop);
-  }
-  return input.substring(input.length - stop, input.length - start);
-}, "substring");
+const booleanEquals = (value1, value2) => value1 === value2;
 
-// src/lib/uriEncode.ts
-var uriEncode = /* @__PURE__ */ __name((value) => encodeURIComponent(value).replace(/[!*'()]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`), "uriEncode");
-
-// src/utils/endpointFunctions.ts
-var endpointFunctions = {
-  booleanEquals,
-  getAttr,
-  isSet,
-  isValidHostLabel,
-  not,
-  parseURL,
-  stringEquals,
-  substring,
-  uriEncode
+const getAttrPathList = (path) => {
+    const parts = path.split(".");
+    const pathList = [];
+    for (const part of parts) {
+        const squareBracketIndex = part.indexOf("[");
+        if (squareBracketIndex !== -1) {
+            if (part.indexOf("]") !== part.length - 1) {
+                throw new EndpointError(`Path: '${path}' does not end with ']'`);
+            }
+            const arrayIndex = part.slice(squareBracketIndex + 1, -1);
+            if (Number.isNaN(parseInt(arrayIndex))) {
+                throw new EndpointError(`Invalid array index: '${arrayIndex}' in path: '${path}'`);
+            }
+            if (squareBracketIndex !== 0) {
+                pathList.push(part.slice(0, squareBracketIndex));
+            }
+            pathList.push(arrayIndex);
+        }
+        else {
+            pathList.push(part);
+        }
+    }
+    return pathList;
 };
 
-// src/utils/evaluateTemplate.ts
-var evaluateTemplate = /* @__PURE__ */ __name((template, options) => {
-  const evaluatedTemplateArr = [];
-  const templateContext = {
-    ...options.endpointParams,
-    ...options.referenceRecord
-  };
-  let currentIndex = 0;
-  while (currentIndex < template.length) {
-    const openingBraceIndex = template.indexOf("{", currentIndex);
-    if (openingBraceIndex === -1) {
-      evaluatedTemplateArr.push(template.slice(currentIndex));
-      break;
+const getAttr = (value, path) => getAttrPathList(path).reduce((acc, index) => {
+    if (typeof acc !== "object") {
+        throw new EndpointError(`Index '${index}' in '${path}' not found in '${JSON.stringify(value)}'`);
     }
-    evaluatedTemplateArr.push(template.slice(currentIndex, openingBraceIndex));
-    const closingBraceIndex = template.indexOf("}", openingBraceIndex);
-    if (closingBraceIndex === -1) {
-      evaluatedTemplateArr.push(template.slice(openingBraceIndex));
-      break;
+    else if (Array.isArray(acc)) {
+        return acc[parseInt(index)];
     }
-    if (template[openingBraceIndex + 1] === "{" && template[closingBraceIndex + 1] === "}") {
-      evaluatedTemplateArr.push(template.slice(openingBraceIndex + 1, closingBraceIndex));
-      currentIndex = closingBraceIndex + 2;
+    return acc[index];
+}, value);
+
+const isSet = (value) => value != null;
+
+const not = (value) => !value;
+
+const DEFAULT_PORTS = {
+    [types.EndpointURLScheme.HTTP]: 80,
+    [types.EndpointURLScheme.HTTPS]: 443,
+};
+const parseURL = (value) => {
+    const whatwgURL = (() => {
+        try {
+            if (value instanceof URL) {
+                return value;
+            }
+            if (typeof value === "object" && "hostname" in value) {
+                const { hostname, port, protocol = "", path = "", query = {} } = value;
+                const url = new URL(`${protocol}//${hostname}${port ? `:${port}` : ""}${path}`);
+                url.search = Object.entries(query)
+                    .map(([k, v]) => `${k}=${v}`)
+                    .join("&");
+                return url;
+            }
+            return new URL(value);
+        }
+        catch (error) {
+            return null;
+        }
+    })();
+    if (!whatwgURL) {
+        console.error(`Unable to parse ${JSON.stringify(value)} as a whatwg URL.`);
+        return null;
     }
-    const parameterName = template.substring(openingBraceIndex + 1, closingBraceIndex);
-    if (parameterName.includes("#")) {
-      const [refName, attrName] = parameterName.split("#");
-      evaluatedTemplateArr.push(getAttr(templateContext[refName], attrName));
-    } else {
-      evaluatedTemplateArr.push(templateContext[parameterName]);
+    const urlString = whatwgURL.href;
+    const { host, hostname, pathname, protocol, search } = whatwgURL;
+    if (search) {
+        return null;
     }
-    currentIndex = closingBraceIndex + 1;
-  }
-  return evaluatedTemplateArr.join("");
-}, "evaluateTemplate");
+    const scheme = protocol.slice(0, -1);
+    if (!Object.values(types.EndpointURLScheme).includes(scheme)) {
+        return null;
+    }
+    const isIp = isIpAddress(hostname);
+    const inputContainsDefaultPort = urlString.includes(`${host}:${DEFAULT_PORTS[scheme]}`) ||
+        (typeof value === "string" && value.includes(`${host}:${DEFAULT_PORTS[scheme]}`));
+    const authority = `${host}${inputContainsDefaultPort ? `:${DEFAULT_PORTS[scheme]}` : ``}`;
+    return {
+        scheme,
+        authority,
+        path: pathname,
+        normalizedPath: pathname.endsWith("/") ? pathname : `${pathname}/`,
+        isIp,
+    };
+};
 
-// src/utils/getReferenceValue.ts
-var getReferenceValue = /* @__PURE__ */ __name(({ ref }, options) => {
-  const referenceRecord = {
-    ...options.endpointParams,
-    ...options.referenceRecord
-  };
-  return referenceRecord[ref];
-}, "getReferenceValue");
+const stringEquals = (value1, value2) => value1 === value2;
 
-// src/utils/evaluateExpression.ts
-var evaluateExpression = /* @__PURE__ */ __name((obj, keyName, options) => {
-  if (typeof obj === "string") {
-    return evaluateTemplate(obj, options);
-  } else if (obj["fn"]) {
-    return callFunction(obj, options);
-  } else if (obj["ref"]) {
-    return getReferenceValue(obj, options);
-  }
-  throw new EndpointError(`'${keyName}': ${String(obj)} is not a string, function or reference.`);
-}, "evaluateExpression");
+const substring = (input, start, stop, reverse) => {
+    if (start >= stop || input.length < stop) {
+        return null;
+    }
+    if (!reverse) {
+        return input.substring(start, stop);
+    }
+    return input.substring(input.length - stop, input.length - start);
+};
 
-// src/utils/callFunction.ts
-var callFunction = /* @__PURE__ */ __name(({ fn, argv }, options) => {
-  const evaluatedArgs = argv.map(
-    (arg) => ["boolean", "number"].includes(typeof arg) ? arg : evaluateExpression(arg, "arg", options)
-  );
-  const fnSegments = fn.split(".");
-  if (fnSegments[0] in customEndpointFunctions && fnSegments[1] != null) {
-    return customEndpointFunctions[fnSegments[0]][fnSegments[1]](...evaluatedArgs);
-  }
-  return endpointFunctions[fn](...evaluatedArgs);
-}, "callFunction");
+const uriEncode = (value) => encodeURIComponent(value).replace(/[!*'()]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 
-// src/utils/evaluateCondition.ts
-var evaluateCondition = /* @__PURE__ */ __name(({ assign, ...fnArgs }, options) => {
-  if (assign && assign in options.referenceRecord) {
-    throw new EndpointError(`'${assign}' is already defined in Reference Record.`);
-  }
-  const value = callFunction(fnArgs, options);
-  options.logger?.debug?.(`${debugId} evaluateCondition: ${toDebugString(fnArgs)} = ${toDebugString(value)}`);
-  return {
-    result: value === "" ? true : !!value,
-    ...assign != null && { toAssign: { name: assign, value } }
-  };
-}, "evaluateCondition");
+const endpointFunctions = {
+    booleanEquals,
+    getAttr,
+    isSet,
+    isValidHostLabel,
+    not,
+    parseURL,
+    stringEquals,
+    substring,
+    uriEncode,
+};
 
-// src/utils/evaluateConditions.ts
-var evaluateConditions = /* @__PURE__ */ __name((conditions = [], options) => {
-  const conditionsReferenceRecord = {};
-  for (const condition of conditions) {
-    const { result, toAssign } = evaluateCondition(condition, {
-      ...options,
-      referenceRecord: {
+const evaluateTemplate = (template, options) => {
+    const evaluatedTemplateArr = [];
+    const templateContext = {
+        ...options.endpointParams,
         ...options.referenceRecord,
-        ...conditionsReferenceRecord
-      }
-    });
-    if (!result) {
-      return { result };
+    };
+    let currentIndex = 0;
+    while (currentIndex < template.length) {
+        const openingBraceIndex = template.indexOf("{", currentIndex);
+        if (openingBraceIndex === -1) {
+            evaluatedTemplateArr.push(template.slice(currentIndex));
+            break;
+        }
+        evaluatedTemplateArr.push(template.slice(currentIndex, openingBraceIndex));
+        const closingBraceIndex = template.indexOf("}", openingBraceIndex);
+        if (closingBraceIndex === -1) {
+            evaluatedTemplateArr.push(template.slice(openingBraceIndex));
+            break;
+        }
+        if (template[openingBraceIndex + 1] === "{" && template[closingBraceIndex + 1] === "}") {
+            evaluatedTemplateArr.push(template.slice(openingBraceIndex + 1, closingBraceIndex));
+            currentIndex = closingBraceIndex + 2;
+        }
+        const parameterName = template.substring(openingBraceIndex + 1, closingBraceIndex);
+        if (parameterName.includes("#")) {
+            const [refName, attrName] = parameterName.split("#");
+            evaluatedTemplateArr.push(getAttr(templateContext[refName], attrName));
+        }
+        else {
+            evaluatedTemplateArr.push(templateContext[parameterName]);
+        }
+        currentIndex = closingBraceIndex + 1;
     }
-    if (toAssign) {
-      conditionsReferenceRecord[toAssign.name] = toAssign.value;
-      options.logger?.debug?.(`${debugId} assign: ${toAssign.name} := ${toDebugString(toAssign.value)}`);
-    }
-  }
-  return { result: true, referenceRecord: conditionsReferenceRecord };
-}, "evaluateConditions");
+    return evaluatedTemplateArr.join("");
+};
 
-// src/utils/getEndpointHeaders.ts
-var getEndpointHeaders = /* @__PURE__ */ __name((headers, options) => Object.entries(headers).reduce(
-  (acc, [headerKey, headerVal]) => ({
+const getReferenceValue = ({ ref }, options) => {
+    const referenceRecord = {
+        ...options.endpointParams,
+        ...options.referenceRecord,
+    };
+    return referenceRecord[ref];
+};
+
+const evaluateExpression = (obj, keyName, options) => {
+    if (typeof obj === "string") {
+        return evaluateTemplate(obj, options);
+    }
+    else if (obj["fn"]) {
+        return group$2.callFunction(obj, options);
+    }
+    else if (obj["ref"]) {
+        return getReferenceValue(obj, options);
+    }
+    throw new EndpointError(`'${keyName}': ${String(obj)} is not a string, function or reference.`);
+};
+const callFunction = ({ fn, argv }, options) => {
+    const evaluatedArgs = argv.map((arg) => ["boolean", "number"].includes(typeof arg) ? arg : group$2.evaluateExpression(arg, "arg", options));
+    const fnSegments = fn.split(".");
+    if (fnSegments[0] in customEndpointFunctions && fnSegments[1] != null) {
+        return customEndpointFunctions[fnSegments[0]][fnSegments[1]](...evaluatedArgs);
+    }
+    return endpointFunctions[fn](...evaluatedArgs);
+};
+const group$2 = {
+    evaluateExpression,
+    callFunction,
+};
+
+const evaluateCondition = ({ assign, ...fnArgs }, options) => {
+    if (assign && assign in options.referenceRecord) {
+        throw new EndpointError(`'${assign}' is already defined in Reference Record.`);
+    }
+    const value = callFunction(fnArgs, options);
+    options.logger?.debug?.(`${debugId} evaluateCondition: ${toDebugString(fnArgs)} = ${toDebugString(value)}`);
+    return {
+        result: value === "" ? true : !!value,
+        ...(assign != null && { toAssign: { name: assign, value } }),
+    };
+};
+
+const evaluateConditions = (conditions = [], options) => {
+    const conditionsReferenceRecord = {};
+    for (const condition of conditions) {
+        const { result, toAssign } = evaluateCondition(condition, {
+            ...options,
+            referenceRecord: {
+                ...options.referenceRecord,
+                ...conditionsReferenceRecord,
+            },
+        });
+        if (!result) {
+            return { result };
+        }
+        if (toAssign) {
+            conditionsReferenceRecord[toAssign.name] = toAssign.value;
+            options.logger?.debug?.(`${debugId} assign: ${toAssign.name} := ${toDebugString(toAssign.value)}`);
+        }
+    }
+    return { result: true, referenceRecord: conditionsReferenceRecord };
+};
+
+const getEndpointHeaders = (headers, options) => Object.entries(headers).reduce((acc, [headerKey, headerVal]) => ({
     ...acc,
     [headerKey]: headerVal.map((headerValEntry) => {
-      const processedExpr = evaluateExpression(headerValEntry, "Header value entry", options);
-      if (typeof processedExpr !== "string") {
-        throw new EndpointError(`Header '${headerKey}' value '${processedExpr}' is not a string`);
-      }
-      return processedExpr;
-    })
-  }),
-  {}
-), "getEndpointHeaders");
+        const processedExpr = evaluateExpression(headerValEntry, "Header value entry", options);
+        if (typeof processedExpr !== "string") {
+            throw new EndpointError(`Header '${headerKey}' value '${processedExpr}' is not a string`);
+        }
+        return processedExpr;
+    }),
+}), {});
 
-// src/utils/getEndpointProperty.ts
-var getEndpointProperty = /* @__PURE__ */ __name((property, options) => {
-  if (Array.isArray(property)) {
-    return property.map((propertyEntry) => getEndpointProperty(propertyEntry, options));
-  }
-  switch (typeof property) {
-    case "string":
-      return evaluateTemplate(property, options);
-    case "object":
-      if (property === null) {
-        throw new EndpointError(`Unexpected endpoint property: ${property}`);
-      }
-      return getEndpointProperties(property, options);
-    case "boolean":
-      return property;
-    default:
-      throw new EndpointError(`Unexpected endpoint property type: ${typeof property}`);
-  }
-}, "getEndpointProperty");
-
-// src/utils/getEndpointProperties.ts
-var getEndpointProperties = /* @__PURE__ */ __name((properties, options) => Object.entries(properties).reduce(
-  (acc, [propertyKey, propertyVal]) => ({
+const getEndpointProperties = (properties, options) => Object.entries(properties).reduce((acc, [propertyKey, propertyVal]) => ({
     ...acc,
-    [propertyKey]: getEndpointProperty(propertyVal, options)
-  }),
-  {}
-), "getEndpointProperties");
-
-// src/utils/getEndpointUrl.ts
-var getEndpointUrl = /* @__PURE__ */ __name((endpointUrl, options) => {
-  const expression = evaluateExpression(endpointUrl, "Endpoint URL", options);
-  if (typeof expression === "string") {
-    try {
-      return new URL(expression);
-    } catch (error) {
-      console.error(`Failed to construct URL with ${expression}`, error);
-      throw error;
+    [propertyKey]: group$1.getEndpointProperty(propertyVal, options),
+}), {});
+const getEndpointProperty = (property, options) => {
+    if (Array.isArray(property)) {
+        return property.map((propertyEntry) => getEndpointProperty(propertyEntry, options));
     }
-  }
-  throw new EndpointError(`Endpoint URL must be a string, got ${typeof expression}`);
-}, "getEndpointUrl");
-
-// src/utils/evaluateEndpointRule.ts
-var evaluateEndpointRule = /* @__PURE__ */ __name((endpointRule, options) => {
-  const { conditions, endpoint } = endpointRule;
-  const { result, referenceRecord } = evaluateConditions(conditions, options);
-  if (!result) {
-    return;
-  }
-  const endpointRuleOptions = {
-    ...options,
-    referenceRecord: { ...options.referenceRecord, ...referenceRecord }
-  };
-  const { url, properties, headers } = endpoint;
-  options.logger?.debug?.(`${debugId} Resolving endpoint from template: ${toDebugString(endpoint)}`);
-  return {
-    ...headers != void 0 && {
-      headers: getEndpointHeaders(headers, endpointRuleOptions)
-    },
-    ...properties != void 0 && {
-      properties: getEndpointProperties(properties, endpointRuleOptions)
-    },
-    url: getEndpointUrl(url, endpointRuleOptions)
-  };
-}, "evaluateEndpointRule");
-
-// src/utils/evaluateErrorRule.ts
-var evaluateErrorRule = /* @__PURE__ */ __name((errorRule, options) => {
-  const { conditions, error } = errorRule;
-  const { result, referenceRecord } = evaluateConditions(conditions, options);
-  if (!result) {
-    return;
-  }
-  throw new EndpointError(
-    evaluateExpression(error, "Error", {
-      ...options,
-      referenceRecord: { ...options.referenceRecord, ...referenceRecord }
-    })
-  );
-}, "evaluateErrorRule");
-
-// src/utils/evaluateTreeRule.ts
-var evaluateTreeRule = /* @__PURE__ */ __name((treeRule, options) => {
-  const { conditions, rules } = treeRule;
-  const { result, referenceRecord } = evaluateConditions(conditions, options);
-  if (!result) {
-    return;
-  }
-  return evaluateRules(rules, {
-    ...options,
-    referenceRecord: { ...options.referenceRecord, ...referenceRecord }
-  });
-}, "evaluateTreeRule");
-
-// src/utils/evaluateRules.ts
-var evaluateRules = /* @__PURE__ */ __name((rules, options) => {
-  for (const rule of rules) {
-    if (rule.type === "endpoint") {
-      const endpointOrUndefined = evaluateEndpointRule(rule, options);
-      if (endpointOrUndefined) {
-        return endpointOrUndefined;
-      }
-    } else if (rule.type === "error") {
-      evaluateErrorRule(rule, options);
-    } else if (rule.type === "tree") {
-      const endpointOrUndefined = evaluateTreeRule(rule, options);
-      if (endpointOrUndefined) {
-        return endpointOrUndefined;
-      }
-    } else {
-      throw new EndpointError(`Unknown endpoint rule: ${rule}`);
+    switch (typeof property) {
+        case "string":
+            return evaluateTemplate(property, options);
+        case "object":
+            if (property === null) {
+                throw new EndpointError(`Unexpected endpoint property: ${property}`);
+            }
+            return group$1.getEndpointProperties(property, options);
+        case "boolean":
+            return property;
+        default:
+            throw new EndpointError(`Unexpected endpoint property type: ${typeof property}`);
     }
-  }
-  throw new EndpointError(`Rules evaluation failed`);
-}, "evaluateRules");
+};
+const group$1 = {
+    getEndpointProperty,
+    getEndpointProperties,
+};
 
-// src/resolveEndpoint.ts
-var resolveEndpoint = /* @__PURE__ */ __name((ruleSetObject, options) => {
-  const { endpointParams, logger } = options;
-  const { parameters, rules } = ruleSetObject;
-  options.logger?.debug?.(`${debugId} Initial EndpointParams: ${toDebugString(endpointParams)}`);
-  const paramsWithDefault = Object.entries(parameters).filter(([, v]) => v.default != null).map(([k, v]) => [k, v.default]);
-  if (paramsWithDefault.length > 0) {
-    for (const [paramKey, paramDefaultValue] of paramsWithDefault) {
-      endpointParams[paramKey] = endpointParams[paramKey] ?? paramDefaultValue;
+const getEndpointUrl = (endpointUrl, options) => {
+    const expression = evaluateExpression(endpointUrl, "Endpoint URL", options);
+    if (typeof expression === "string") {
+        try {
+            return new URL(expression);
+        }
+        catch (error) {
+            console.error(`Failed to construct URL with ${expression}`, error);
+            throw error;
+        }
     }
-  }
-  const requiredParams = Object.entries(parameters).filter(([, v]) => v.required).map(([k]) => k);
-  for (const requiredParam of requiredParams) {
-    if (endpointParams[requiredParam] == null) {
-      throw new EndpointError(`Missing required parameter: '${requiredParam}'`);
+    throw new EndpointError(`Endpoint URL must be a string, got ${typeof expression}`);
+};
+
+const evaluateEndpointRule = (endpointRule, options) => {
+    const { conditions, endpoint } = endpointRule;
+    const { result, referenceRecord } = evaluateConditions(conditions, options);
+    if (!result) {
+        return;
     }
-  }
-  const endpoint = evaluateRules(rules, { endpointParams, logger, referenceRecord: {} });
-  options.logger?.debug?.(`${debugId} Resolved endpoint: ${toDebugString(endpoint)}`);
-  return endpoint;
-}, "resolveEndpoint");
-// Annotate the CommonJS export names for ESM import in node:
+    const endpointRuleOptions = {
+        ...options,
+        referenceRecord: { ...options.referenceRecord, ...referenceRecord },
+    };
+    const { url, properties, headers } = endpoint;
+    options.logger?.debug?.(`${debugId} Resolving endpoint from template: ${toDebugString(endpoint)}`);
+    return {
+        ...(headers != undefined && {
+            headers: getEndpointHeaders(headers, endpointRuleOptions),
+        }),
+        ...(properties != undefined && {
+            properties: getEndpointProperties(properties, endpointRuleOptions),
+        }),
+        url: getEndpointUrl(url, endpointRuleOptions),
+    };
+};
 
-0 && (0);
+const evaluateErrorRule = (errorRule, options) => {
+    const { conditions, error } = errorRule;
+    const { result, referenceRecord } = evaluateConditions(conditions, options);
+    if (!result) {
+        return;
+    }
+    throw new EndpointError(evaluateExpression(error, "Error", {
+        ...options,
+        referenceRecord: { ...options.referenceRecord, ...referenceRecord },
+    }));
+};
 
+const evaluateRules = (rules, options) => {
+    for (const rule of rules) {
+        if (rule.type === "endpoint") {
+            const endpointOrUndefined = evaluateEndpointRule(rule, options);
+            if (endpointOrUndefined) {
+                return endpointOrUndefined;
+            }
+        }
+        else if (rule.type === "error") {
+            evaluateErrorRule(rule, options);
+        }
+        else if (rule.type === "tree") {
+            const endpointOrUndefined = group.evaluateTreeRule(rule, options);
+            if (endpointOrUndefined) {
+                return endpointOrUndefined;
+            }
+        }
+        else {
+            throw new EndpointError(`Unknown endpoint rule: ${rule}`);
+        }
+    }
+    throw new EndpointError(`Rules evaluation failed`);
+};
+const evaluateTreeRule = (treeRule, options) => {
+    const { conditions, rules } = treeRule;
+    const { result, referenceRecord } = evaluateConditions(conditions, options);
+    if (!result) {
+        return;
+    }
+    return group.evaluateRules(rules, {
+        ...options,
+        referenceRecord: { ...options.referenceRecord, ...referenceRecord },
+    });
+};
+const group = {
+    evaluateRules,
+    evaluateTreeRule,
+};
+
+const resolveEndpoint = (ruleSetObject, options) => {
+    const { endpointParams, logger } = options;
+    const { parameters, rules } = ruleSetObject;
+    options.logger?.debug?.(`${debugId} Initial EndpointParams: ${toDebugString(endpointParams)}`);
+    const paramsWithDefault = Object.entries(parameters)
+        .filter(([, v]) => v.default != null)
+        .map(([k, v]) => [k, v.default]);
+    if (paramsWithDefault.length > 0) {
+        for (const [paramKey, paramDefaultValue] of paramsWithDefault) {
+            endpointParams[paramKey] = endpointParams[paramKey] ?? paramDefaultValue;
+        }
+    }
+    const requiredParams = Object.entries(parameters)
+        .filter(([, v]) => v.required)
+        .map(([k]) => k);
+    for (const requiredParam of requiredParams) {
+        if (endpointParams[requiredParam] == null) {
+            throw new EndpointError(`Missing required parameter: '${requiredParam}'`);
+        }
+    }
+    const endpoint = evaluateRules(rules, { endpointParams, logger, referenceRecord: {} });
+    options.logger?.debug?.(`${debugId} Resolved endpoint: ${toDebugString(endpoint)}`);
+    return endpoint;
+};
+
+exports.EndpointCache = EndpointCache;
+exports.EndpointError = EndpointError;
+exports.customEndpointFunctions = customEndpointFunctions;
+exports.isIpAddress = isIpAddress;
+exports.isValidHostLabel = isValidHostLabel;
+exports.resolveEndpoint = resolveEndpoint;
 
 
 /***/ }),
@@ -122510,49 +122244,24 @@ __name(toHex, "toHex");
 /***/ }),
 
 /***/ 6324:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
+"use strict";
+
+
+var types = __nccwpck_require__(690);
+
+const getSmithyContext = (context) => context[types.SMITHY_CONTEXT_KEY] || (context[types.SMITHY_CONTEXT_KEY] = {});
+
+const normalizeProvider = (input) => {
+    if (typeof input === "function")
+        return input;
+    const promisified = Promise.resolve(input);
+    return () => promisified;
 };
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  getSmithyContext: () => getSmithyContext,
-  normalizeProvider: () => normalizeProvider
-});
-module.exports = __toCommonJS(index_exports);
-
-// src/getSmithyContext.ts
-var import_types = __nccwpck_require__(690);
-var getSmithyContext = /* @__PURE__ */ __name((context) => context[import_types.SMITHY_CONTEXT_KEY] || (context[import_types.SMITHY_CONTEXT_KEY] = {}), "getSmithyContext");
-
-// src/normalizeProvider.ts
-var normalizeProvider = /* @__PURE__ */ __name((input) => {
-  if (typeof input === "function") return input;
-  const promisified = Promise.resolve(input);
-  return () => promisified;
-}, "normalizeProvider");
-// Annotate the CommonJS export names for ESM import in node:
-
-0 && (0);
-
+exports.getSmithyContext = getSmithyContext;
+exports.normalizeProvider = normalizeProvider;
 
 
 /***/ }),
@@ -151605,7 +151314,7 @@ module.exports = {
 
 const core = __nccwpck_require__(7484);
 const {
-  WAFv2Client,
+  WAFV2Client,
   UpdateIPSetCommand,
   GetIPSetCommand,
 } = __nccwpck_require__(8213);
@@ -151643,7 +151352,7 @@ async function getPublicIP() {
 /**
  * Configure AWS client
  * @param {string} region AWS region
- * @returns {WAFv2Client} Configured WAF client
+ * @returns {WAFV2Client} Configured WAF client
  */
 function createWAFClient(region) {
   // Use AWS SDK default credential chain
@@ -151651,7 +151360,7 @@ function createWAFClient(region) {
   // - Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
   // - IAM roles (for self-hosted runners)
   // - Credentials set by actions like aws-actions/configure-aws-credentials
-  return new WAFv2Client({ region });
+  return new WAFV2Client({ region });
 }
 
 /**
@@ -151666,7 +151375,7 @@ function createEC2Client(region) {
 
 /**
  * Add IP address to WAF IPSet with locking mechanism
- * @param {WAFv2Client} client WAF client
+ * @param {WAFV2Client} client WAF client
  * @param {string} id IPSet ID
  * @param {string} name IPSet name
  * @param {string} scope IPSet scope
@@ -152015,6 +151724,14 @@ module.exports = require("node:crypto");
 
 "use strict";
 module.exports = require("node:events");
+
+/***/ }),
+
+/***/ 1455:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:fs/promises");
 
 /***/ }),
 
