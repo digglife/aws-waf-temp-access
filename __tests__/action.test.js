@@ -58,7 +58,7 @@ describe('aws-waf-temp-access', () => {
     expect(action.name).toBe('aws-waf-temp-access');
     expect(action.description).toBeDefined();
     expect(action.runs).toBeDefined();
-    expect(action.runs.using).toBe('node20');
+    expect(action.runs.using).toBe('node24');
     expect(action.runs.main).toBe('dist/index.js');
     expect(action.runs.post).toBe('dist/cleanup.js');
 

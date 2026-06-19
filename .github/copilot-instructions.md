@@ -8,7 +8,7 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Bootstrap, Build, and Test the Repository
 - Install dependencies: `npm ci` (takes ~4-5 seconds on subsequent runs, up to 30s on first install)
-- Run linter: `npm run lint` (takes <1 second) 
+- Run linter: `npm run lint` (takes <1 second)
 - Run tests: `npm run test` (takes <1 second, 3 tests)
 - Build action: `npm run build` (takes ~8-10 seconds. NEVER CANCEL. Set timeout to 30+ seconds)
 - Format code: `npm run format` (takes <1 second)
@@ -61,7 +61,7 @@ jobs:
 ### Validation Checklist
 After making any code changes, verify:
 - [ ] `npm run lint` passes without errors
-- [ ] `npm run test` shows all 3 tests passing  
+- [ ] `npm run test` shows all 3 tests passing
 - [ ] `npm run build` completes and creates both dist files
 - [ ] `dist/index.js` is ~2.3MB and `dist/cleanup.js` is ~1.9MB
 - [ ] No uncommitted changes after build (dist files should be committed)
@@ -75,7 +75,7 @@ node -e "const yaml = require('js-yaml'); const fs = require('fs'); console.log(
 # Check bundle sizes
 ls -lh dist/
 
-# Verify Node.js compatibility (should be 20.x)
+# Verify Node.js compatibility (should be 24.x)
 node --version
 
 # Test IP detection (will fail in sandbox but shows axios functionality)
@@ -94,7 +94,7 @@ ls -la dist/
 **CRITICAL**: Always use appropriate timeouts to prevent premature command cancellation:
 
 - `npm ci`: 4-5 seconds (cached) to 30 seconds (fresh) → Use 60+ second timeout
-- `npm run lint`: <1 second → Use 30+ second timeout  
+- `npm run lint`: <1 second → Use 30+ second timeout
 - `npm run test`: <1 second → Use 30+ second timeout
 - `npm run build`: 8-10 seconds → Use 30+ second timeout
 - `npm run format`: <1 second → Use 30+ second timeout
@@ -135,7 +135,7 @@ node -e "console.log(require('@actions/core')); console.log(require('@aws-sdk/cl
 ```
 
 ### Required Tools and Dependencies
-- Node.js 20.x (action requires node20 runtime)
+- Node.js 24.x (action requires node24 runtime)
 - npm (included with Node.js)
 - All dependencies defined in package.json
 
@@ -175,7 +175,7 @@ aws-waf-temp-access/
 ### action.yml
 Defines the GitHub Action interface with:
 - Required inputs: id, name, scope, region
-- Node.js 20 runtime specification
+- Node.js 24 runtime specification
 - Main and post-action script references
 
 ### package.json Scripts
