@@ -1,14 +1,14 @@
-const core = require("@actions/core");
+const core = require('@actions/core');
 const {
   WAFV2Client,
   UpdateIPSetCommand,
   GetIPSetCommand,
-} = require("@aws-sdk/client-wafv2");
+} = require('@aws-sdk/client-wafv2');
 const {
   EC2Client,
   AuthorizeSecurityGroupIngressCommand,
-} = require("@aws-sdk/client-ec2");
-const axios = require("axios");
+} = require('@aws-sdk/client-ec2');
+const axios = require('axios');
 
 /**
  * Get the public IP address of the current GitHub runner
@@ -16,7 +16,7 @@ const axios = require("axios");
  */
 async function getPublicIP() {
   try {
-    const response = await axios.get("https://api.ipify.org?format=text", {
+    const response = await axios.get('https://api.ipify.org?format=text', {
       timeout: 10000,
     });
     return response.data.trim();
@@ -25,12 +25,14 @@ async function getPublicIP() {
       `Failed to get IP from ipify, trying alternative: ${error.message}`,
     );
     try {
-      const response = await axios.get("https://icanhazip.com/", {
+      const response = await axios.get('https://icanhazip.com/', {
         timeout: 10000,
       });
       return response.data.trim();
     } catch (fallbackError) {
-      throw new Error(`Failed to get public IP: ${fallbackError.message}`);
+      throw new Error(`Failed to get public IP: ${fallbackError.message}`, {
+        cause: fallbackError,
+      });
     }
   }
 }
@@ -86,7 +88,7 @@ async function addIPToIPSet(client, id, name, scope, ipAddress) {
       const currentAddresses = ipSetResponse.IPSet.Addresses || [];
 
       // Check if IP is already in the set
-      const ipWithCidr = ipAddress.includes("/")
+      const ipWithCidr = ipAddress.includes('/')
         ? ipAddress
         : `${ipAddress}/32`;
       if (currentAddresses.includes(ipWithCidr)) {
@@ -112,15 +114,15 @@ async function addIPToIPSet(client, id, name, scope, ipAddress) {
       core.info(`Successfully added IP ${ipWithCidr} to IPSet ${name}`);
 
       // Store the IP for cleanup
-      core.saveState("runner-ip", ipWithCidr);
-      core.saveState("ipset-id", id);
-      core.saveState("ipset-name", name);
-      core.saveState("ipset-scope", scope);
-      core.saveState("aws-region", client.config.region);
+      core.saveState('runner-ip', ipWithCidr);
+      core.saveState('ipset-id', id);
+      core.saveState('ipset-name', name);
+      core.saveState('ipset-scope', scope);
+      core.saveState('aws-region', client.config.region);
 
       return;
     } catch (error) {
-      if (error.name === "WAFOptimisticLockException") {
+      if (error.name === 'WAFOptimisticLockException') {
         const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
         core.warning(
           `Lock conflict detected, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`,
@@ -148,7 +150,7 @@ async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
   const maxRetries = 5;
   const baseDelay = 1000; // 1 second
 
-  const ipWithCidr = ipAddress.includes("/") ? ipAddress : `${ipAddress}/32`;
+  const ipWithCidr = ipAddress.includes('/') ? ipAddress : `${ipAddress}/32`;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -158,14 +160,14 @@ async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
         GroupId: groupId,
         IpPermissions: [
           {
-            IpProtocol: "tcp",
+            IpProtocol: 'tcp',
             FromPort: 443,
             ToPort: 443,
             IpRanges: [
               {
                 CidrIp: ipWithCidr,
                 Description:
-                  description || "Temporary access from GitHub Actions runner",
+                  description || 'Temporary access from GitHub Actions runner',
               },
             ],
           },
@@ -178,17 +180,17 @@ async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
       );
 
       // Store the information for cleanup
-      core.saveState("sg-runner-ip", ipWithCidr);
-      core.saveState("sg-group-id", groupId);
+      core.saveState('sg-runner-ip', ipWithCidr);
+      core.saveState('sg-group-id', groupId);
       core.saveState(
-        "sg-description",
-        description || "Temporary access from GitHub Actions runner",
+        'sg-description',
+        description || 'Temporary access from GitHub Actions runner',
       );
-      core.saveState("sg-aws-region", client.config.region);
+      core.saveState('sg-aws-region', client.config.region);
 
       return;
     } catch (error) {
-      if (error.name === "InvalidPermission.Duplicate") {
+      if (error.name === 'InvalidPermission.Duplicate') {
         core.info(
           `IP ${ipWithCidr} is already allowed in Security Group ${groupId}`,
         );
@@ -211,13 +213,13 @@ async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
 async function main() {
   try {
     // Get inputs
-    const id = core.getInput("id");
-    const name = core.getInput("name");
-    const scope = core.getInput("scope");
-    const region = core.getInput("region", { required: true });
-    const securityGroupId = core.getInput("security-group-id");
+    const id = core.getInput('id');
+    const name = core.getInput('name');
+    const scope = core.getInput('scope');
+    const region = core.getInput('region', { required: true });
+    const securityGroupId = core.getInput('security-group-id');
     const securityGroupDescription = core.getInput(
-      "security-group-description",
+      'security-group-description',
     );
 
     // Validate that at least one target is specified
@@ -226,7 +228,7 @@ async function main() {
 
     if (!hasWafConfig && !hasSecurityGroupConfig) {
       throw new Error(
-        "Either WAF IPSet configuration (id, name) or Security Group configuration (security-group-id) must be provided",
+        'Either WAF IPSet configuration (id, name) or Security Group configuration (security-group-id) must be provided',
       );
     }
 
@@ -239,14 +241,14 @@ async function main() {
     }
 
     // Validate WAF scope if WAF is configured
-    if (hasWafConfig && !["CLOUDFRONT", "REGIONAL"].includes(scope)) {
+    if (hasWafConfig && !['CLOUDFRONT', 'REGIONAL'].includes(scope)) {
       throw new Error(
         `Invalid scope: ${scope}. Must be CLOUDFRONT or REGIONAL`,
       );
     }
 
     // Get public IP
-    core.info("Getting public IP address...");
+    core.info('Getting public IP address...');
     const publicIP = await getPublicIP();
     core.info(`Public IP detected: ${publicIP}`);
 
@@ -267,8 +269,8 @@ async function main() {
       );
     }
 
-    core.setOutput("ip-address", publicIP);
-    core.setOutput("status", "success");
+    core.setOutput('ip-address', publicIP);
+    core.setOutput('status', 'success');
   } catch (error) {
     core.setFailed(`Action failed: ${error.message}`);
     core.debug(error.stack);

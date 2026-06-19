@@ -114306,7 +114306,9 @@ async function getPublicIP() {
       });
       return response.data.trim();
     } catch (fallbackError) {
-      throw new Error(`Failed to get public IP: ${fallbackError.message}`);
+      throw new Error(`Failed to get public IP: ${fallbackError.message}`, {
+        cause: fallbackError,
+      });
     }
   }
 }

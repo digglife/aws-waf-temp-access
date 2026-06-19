@@ -1,13 +1,13 @@
-const core = require("@actions/core");
+const core = require('@actions/core');
 const {
   WAFV2Client,
   UpdateIPSetCommand,
   GetIPSetCommand,
-} = require("@aws-sdk/client-wafv2");
+} = require('@aws-sdk/client-wafv2');
 const {
   EC2Client,
   RevokeSecurityGroupIngressCommand,
-} = require("@aws-sdk/client-ec2");
+} = require('@aws-sdk/client-ec2');
 
 /**
  * Configure AWS client
@@ -88,7 +88,7 @@ async function removeIPFromIPSet(client, id, name, scope, ipAddress) {
 
       return;
     } catch (error) {
-      if (error.name === "WAFOptimisticLockException") {
+      if (error.name === 'WAFOptimisticLockException') {
         const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
         core.warning(
           `Lock conflict detected during cleanup, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`,
@@ -138,14 +138,14 @@ async function removeIPFromSecurityGroup(
         GroupId: groupId,
         IpPermissions: [
           {
-            IpProtocol: "tcp",
+            IpProtocol: 'tcp',
             FromPort: 443,
             ToPort: 443,
             IpRanges: [
               {
                 CidrIp: ipAddress,
                 Description:
-                  description || "Temporary access from GitHub Actions runner",
+                  description || 'Temporary access from GitHub Actions runner',
               },
             ],
           },
@@ -159,7 +159,7 @@ async function removeIPFromSecurityGroup(
 
       return;
     } catch (error) {
-      if (error.name === "InvalidPermission.NotFound") {
+      if (error.name === 'InvalidPermission.NotFound') {
         core.info(
           `IP ${ipAddress} is not in Security Group ${groupId}, no cleanup needed`,
         );
@@ -184,24 +184,24 @@ async function removeIPFromSecurityGroup(
 async function cleanup() {
   try {
     // Get stored state from the main action
-    const runnerIP = core.getState("runner-ip");
-    const ipsetId = core.getState("ipset-id");
-    const ipsetName = core.getState("ipset-name");
-    const ipsetScope = core.getState("ipset-scope");
-    const awsRegion = core.getState("aws-region");
+    const runnerIP = core.getState('runner-ip');
+    const ipsetId = core.getState('ipset-id');
+    const ipsetName = core.getState('ipset-name');
+    const ipsetScope = core.getState('ipset-scope');
+    const awsRegion = core.getState('aws-region');
 
     // Get Security Group state
-    const sgRunnerIP = core.getState("sg-runner-ip");
-    const sgGroupId = core.getState("sg-group-id");
-    const sgDescription = core.getState("sg-description");
-    const sgAwsRegion = core.getState("sg-aws-region");
+    const sgRunnerIP = core.getState('sg-runner-ip');
+    const sgGroupId = core.getState('sg-group-id');
+    const sgDescription = core.getState('sg-description');
+    const sgAwsRegion = core.getState('sg-aws-region');
 
     const hasWafState =
       runnerIP && ipsetId && ipsetName && ipsetScope && awsRegion;
     const hasSecurityGroupState = sgRunnerIP && sgGroupId && sgAwsRegion;
 
     if (!hasWafState && !hasSecurityGroupState) {
-      core.info("No cleanup state found, skipping IP removal");
+      core.info('No cleanup state found, skipping IP removal');
       return;
     }
 
@@ -220,7 +220,7 @@ async function cleanup() {
         runnerIP,
       );
 
-      core.info("WAF cleanup completed successfully");
+      core.info('WAF cleanup completed successfully');
     }
 
     // Cleanup Security Group if needed
@@ -237,10 +237,10 @@ async function cleanup() {
         sgDescription,
       );
 
-      core.info("Security Group cleanup completed successfully");
+      core.info('Security Group cleanup completed successfully');
     }
 
-    core.info("All cleanup operations completed successfully");
+    core.info('All cleanup operations completed successfully');
   } catch (error) {
     // Don't fail the action on cleanup errors, just log them
     core.warning(`Cleanup failed: ${error.message}`);
