@@ -1,6 +1,6 @@
 {
   "name": "aws-waf-temp-access",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A GitHub Action for temporary AWS WAF access by managing runner IP in IPSets",
   "main": "src/index.js",
   "scripts": {
