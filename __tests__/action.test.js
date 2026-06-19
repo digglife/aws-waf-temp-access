@@ -3,11 +3,11 @@ const path = require('path');
 const yaml = require('js-yaml');
 
 // Mock AWS SDK clients and @actions/core for testing
-const mockWAFv2Client = jest.fn();
+const mockWAFV2Client = jest.fn();
 const mockEC2Client = jest.fn();
 
 jest.mock('@aws-sdk/client-wafv2', () => ({
-  WAFv2Client: mockWAFv2Client,
+  WAFV2Client: mockWAFV2Client,
   UpdateIPSetCommand: jest.fn(),
   GetIPSetCommand: jest.fn(),
 }));
@@ -106,11 +106,11 @@ describe('aws-waf-temp-access', () => {
     expect(packageContent.devDependencies['@vercel/ncc']).toBeDefined();
   });
 
-  test('createWAFClient should return WAFv2Client instance', () => {
+  test('createWAFClient should return WAFV2Client instance', () => {
     const region = 'us-east-1';
     const client = createWAFClient(region);
 
-    expect(mockWAFv2Client).toHaveBeenCalledWith({ region });
+    expect(mockWAFV2Client).toHaveBeenCalledWith({ region });
     expect(client).toBeDefined();
   });
 
