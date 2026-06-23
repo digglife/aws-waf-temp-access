@@ -68,9 +68,8 @@ function createEC2Client(region) {
  * @param {string} name IPSet name
  * @param {string} scope IPSet scope
  * @param {string} ipAddress IP address to add
- * @param {string} region AWS region
  */
-async function addIPToIPSet(client, id, name, scope, ipAddress, region) {
+async function addIPToIPSet(client, id, name, scope, ipAddress) {
   const maxRetries = 10;
   const baseDelay = 1000; // 1 second
 
@@ -119,7 +118,7 @@ async function addIPToIPSet(client, id, name, scope, ipAddress, region) {
       core.saveState('ipset-id', id);
       core.saveState('ipset-name', name);
       core.saveState('ipset-scope', scope);
-      core.saveState('aws-region', region);
+      core.saveState('aws-region', await client.config.region());
 
       return;
     } catch (error) {
@@ -146,9 +145,8 @@ async function addIPToIPSet(client, id, name, scope, ipAddress, region) {
  * @param {string} groupId Security Group ID
  * @param {string} ipAddress IP address to add
  * @param {string} description Description for the rule
- * @param {string} region AWS region
  */
-async function addIPToSecurityGroup(client, groupId, ipAddress, description, region) {
+async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
   const maxRetries = 5;
   const baseDelay = 1000; // 1 second
 
@@ -188,7 +186,7 @@ async function addIPToSecurityGroup(client, groupId, ipAddress, description, reg
         'sg-description',
         description || 'Temporary access from GitHub Actions runner',
       );
-      core.saveState('sg-aws-region', region);
+      core.saveState('sg-aws-region', await client.config.region());
 
       return;
     } catch (error) {
@@ -257,7 +255,7 @@ async function main() {
     // Handle WAF IPSet if configured
     if (hasWafConfig) {
       const wafClient = createWAFClient(region);
-      await addIPToIPSet(wafClient, id, name, scope, publicIP, region);
+      await addIPToIPSet(wafClient, id, name, scope, publicIP);
     }
 
     // Handle Security Group if configured
@@ -268,7 +266,6 @@ async function main() {
         securityGroupId,
         publicIP,
         securityGroupDescription,
-        region,
       );
     }
 
