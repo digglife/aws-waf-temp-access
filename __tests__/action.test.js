@@ -172,7 +172,7 @@ describe('aws-waf-temp-access', () => {
     core.info = jest.fn();
     core.saveState = jest.fn();
 
-    await addIPToSecurityGroup(mockClient, groupId, ipAddress, description);
+    await addIPToSecurityGroup(mockClient, groupId, ipAddress, description, 'us-east-1');
 
     expect(mockClient.send).toHaveBeenCalledTimes(1);
     expect(core.saveState).toHaveBeenCalledWith('sg-runner-ip', '192.168.1.1/32');
@@ -193,10 +193,11 @@ describe('aws-waf-temp-access', () => {
     core.info = jest.fn();
     core.saveState = jest.fn();
 
-    await addIPToSecurityGroup(mockClient, groupId, ipAddress); // Test without description (default)
+    await addIPToSecurityGroup(mockClient, groupId, ipAddress, undefined, 'us-west-2'); // Test without description (default)
 
     expect(mockClient.send).toHaveBeenCalledTimes(1);
     expect(core.saveState).toHaveBeenCalledWith('sg-runner-ip', '10.0.0.0/24');
+    expect(core.saveState).toHaveBeenCalledWith('sg-aws-region', 'us-west-2');
     expect(core.saveState).toHaveBeenCalledWith('sg-description', 'Temporary access from GitHub Actions runner');
     expect(core.info).toHaveBeenCalledWith('Adding IP 10.0.0.0/24 to Security Group sg-123456789...');
   });

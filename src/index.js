@@ -68,8 +68,9 @@ function createEC2Client(region) {
  * @param {string} name IPSet name
  * @param {string} scope IPSet scope
  * @param {string} ipAddress IP address to add
+ * @param {string} region AWS region
  */
-async function addIPToIPSet(client, id, name, scope, ipAddress) {
+async function addIPToIPSet(client, id, name, scope, ipAddress, region) {
   const maxRetries = 10;
   const baseDelay = 1000; // 1 second
 
@@ -118,7 +119,7 @@ async function addIPToIPSet(client, id, name, scope, ipAddress) {
       core.saveState('ipset-id', id);
       core.saveState('ipset-name', name);
       core.saveState('ipset-scope', scope);
-      core.saveState('aws-region', client.config.region);
+      core.saveState('aws-region', region);
 
       return;
     } catch (error) {
@@ -145,8 +146,9 @@ async function addIPToIPSet(client, id, name, scope, ipAddress) {
  * @param {string} groupId Security Group ID
  * @param {string} ipAddress IP address to add
  * @param {string} description Description for the rule
+ * @param {string} region AWS region
  */
-async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
+async function addIPToSecurityGroup(client, groupId, ipAddress, description, region) {
   const maxRetries = 5;
   const baseDelay = 1000; // 1 second
 
@@ -186,7 +188,7 @@ async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
         'sg-description',
         description || 'Temporary access from GitHub Actions runner',
       );
-      core.saveState('sg-aws-region', client.config.region);
+      core.saveState('sg-aws-region', region);
 
       return;
     } catch (error) {
@@ -255,7 +257,7 @@ async function main() {
     // Handle WAF IPSet if configured
     if (hasWafConfig) {
       const wafClient = createWAFClient(region);
-      await addIPToIPSet(wafClient, id, name, scope, publicIP);
+      await addIPToIPSet(wafClient, id, name, scope, publicIP, region);
     }
 
     // Handle Security Group if configured
@@ -266,13 +268,14 @@ async function main() {
         securityGroupId,
         publicIP,
         securityGroupDescription,
+        region,
       );
     }
 
     core.setOutput('ip-address', publicIP);
     core.setOutput('status', 'success');
   } catch (error) {
-    core.setFailed(`Action failed: ${error.message}`);
+    core.setFailed(`Action failed: ${error.message}:${error.stack}`);
     core.debug(error.stack);
   }
 }
