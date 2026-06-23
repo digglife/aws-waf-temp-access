@@ -272,7 +272,7 @@ async function main() {
     core.setOutput('ip-address', publicIP);
     core.setOutput('status', 'success');
   } catch (error) {
-    core.setFailed(`Action failed: ${error.message}`);
+    core.setFailed(`Action failed: ${error.message}:${error.stack}`);
     core.debug(error.stack);
   }
 }
