@@ -163,7 +163,7 @@ describe('aws-waf-temp-access', () => {
   test('addIPToSecurityGroup should handle IP without CIDR correctly', async () => {
     const mockClient = {
       send: jest.fn().mockResolvedValue({}),
-      config: { region: 'us-east-1' }
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
     };
     const groupId = 'sg-123456789';
     const ipAddress = '192.168.1.1';
@@ -172,7 +172,7 @@ describe('aws-waf-temp-access', () => {
     core.info = jest.fn();
     core.saveState = jest.fn();
 
-    await addIPToSecurityGroup(mockClient, groupId, ipAddress, description, 'us-east-1');
+    await addIPToSecurityGroup(mockClient, groupId, ipAddress, description);
 
     expect(mockClient.send).toHaveBeenCalledTimes(1);
     expect(core.saveState).toHaveBeenCalledWith('sg-runner-ip', '192.168.1.1/32');
@@ -185,7 +185,7 @@ describe('aws-waf-temp-access', () => {
   test('addIPToSecurityGroup should handle IP with CIDR correctly', async () => {
     const mockClient = {
       send: jest.fn().mockResolvedValue({}),
-      config: { region: 'us-east-1' }
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
     };
     const groupId = 'sg-123456789';
     const ipAddress = '10.0.0.0/24';
@@ -193,12 +193,63 @@ describe('aws-waf-temp-access', () => {
     core.info = jest.fn();
     core.saveState = jest.fn();
 
-    await addIPToSecurityGroup(mockClient, groupId, ipAddress, undefined, 'us-west-2'); // Test without description (default)
+    await addIPToSecurityGroup(mockClient, groupId, ipAddress); // Test without description (default)
 
     expect(mockClient.send).toHaveBeenCalledTimes(1);
     expect(core.saveState).toHaveBeenCalledWith('sg-runner-ip', '10.0.0.0/24');
-    expect(core.saveState).toHaveBeenCalledWith('sg-aws-region', 'us-west-2');
+    expect(core.saveState).toHaveBeenCalledWith('sg-aws-region', 'us-east-1');
     expect(core.saveState).toHaveBeenCalledWith('sg-description', 'Temporary access from GitHub Actions runner');
     expect(core.info).toHaveBeenCalledWith('Adding IP 10.0.0.0/24 to Security Group sg-123456789...');
+  });
+
+  test('addIPToIPSet should add IP to WAF IPSet when it is not present', async () => {
+    const mockClient = {
+      send: jest.fn()
+        .mockResolvedValueOnce({
+          IPSet: { Addresses: ['192.168.1.2/32'] },
+          LockToken: 'lock-token-123',
+        })
+        .mockResolvedValueOnce({}),
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
+    };
+    const id = 'ipset-123';
+    const name = 'test-ipset';
+    const scope = 'REGIONAL';
+    const ipAddress = '192.168.1.1';
+
+    core.info = jest.fn();
+    core.saveState = jest.fn();
+
+    await addIPToIPSet(mockClient, id, name, scope, ipAddress);
+
+    expect(mockClient.send).toHaveBeenCalledTimes(2);
+    expect(core.saveState).toHaveBeenCalledWith('runner-ip', '192.168.1.1/32');
+    expect(core.saveState).toHaveBeenCalledWith('ipset-id', id);
+    expect(core.saveState).toHaveBeenCalledWith('ipset-name', name);
+    expect(core.saveState).toHaveBeenCalledWith('ipset-scope', scope);
+    expect(core.saveState).toHaveBeenCalledWith('aws-region', 'us-east-1');
+  });
+
+  test('addIPToIPSet should not add IP to WAF IPSet when it is already present', async () => {
+    const mockClient = {
+      send: jest.fn().mockResolvedValueOnce({
+        IPSet: { Addresses: ['192.168.1.1/32'] },
+        LockToken: 'lock-token-123',
+      }),
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
+    };
+    const id = 'ipset-123';
+    const name = 'test-ipset';
+    const scope = 'REGIONAL';
+    const ipAddress = '192.168.1.1';
+
+    core.info = jest.fn();
+    core.saveState = jest.fn();
+
+    await addIPToIPSet(mockClient, id, name, scope, ipAddress);
+
+    expect(mockClient.send).toHaveBeenCalledTimes(1);
+    expect(core.saveState).not.toHaveBeenCalled();
+    expect(core.info).toHaveBeenCalledWith('IP 192.168.1.1/32 is already in the IPSet');
   });
 });
