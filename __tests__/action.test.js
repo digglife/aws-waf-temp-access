@@ -58,7 +58,7 @@ describe('aws-waf-temp-access', () => {
     expect(action.name).toBe('aws-waf-temp-access');
     expect(action.description).toBeDefined();
     expect(action.runs).toBeDefined();
-    expect(action.runs.using).toBe('node24');
+    expect(action.runs.using).toBe('node26');
     expect(action.runs.main).toBe('dist/index.js');
     expect(action.runs.post).toBe('dist/cleanup.js');
 
@@ -70,7 +70,7 @@ describe('aws-waf-temp-access', () => {
     expect(action.inputs.scope).toBeDefined();
     expect(action.inputs.scope.required).toBe(false);
     expect(action.inputs.region).toBeDefined();
-    expect(action.inputs.region.required).toBe(true);
+    expect(action.inputs.region.required).toBe(false);
     expect(action.inputs['security-group-id']).toBeDefined();
     expect(action.inputs['security-group-id'].required).toBe(false);
     expect(action.inputs['security-group-description']).toBeDefined();
@@ -179,6 +179,8 @@ describe('aws-waf-temp-access', () => {
     expect(core.saveState).toHaveBeenCalledWith('sg-group-id', groupId);
     expect(core.saveState).toHaveBeenCalledWith('sg-description', description);
     expect(core.saveState).toHaveBeenCalledWith('sg-aws-region', 'us-east-1');
+    expect(core.saveState).toHaveBeenCalledWith('sg-port', '443');
+    expect(core.saveState).toHaveBeenCalledWith('sg-protocol', 'tcp');
     expect(core.info).toHaveBeenCalledWith('Adding IP 192.168.1.1/32 to Security Group sg-123456789...');
   });
 
@@ -199,7 +201,80 @@ describe('aws-waf-temp-access', () => {
     expect(core.saveState).toHaveBeenCalledWith('sg-runner-ip', '10.0.0.0/24');
     expect(core.saveState).toHaveBeenCalledWith('sg-aws-region', 'us-east-1');
     expect(core.saveState).toHaveBeenCalledWith('sg-description', 'Temporary access from GitHub Actions runner');
+    expect(core.saveState).toHaveBeenCalledWith('sg-port', '443');
+    expect(core.saveState).toHaveBeenCalledWith('sg-protocol', 'tcp');
     expect(core.info).toHaveBeenCalledWith('Adding IP 10.0.0.0/24 to Security Group sg-123456789...');
+  });
+
+  test('addIPToSecurityGroup should support custom port and protocol', async () => {
+    const { AuthorizeSecurityGroupIngressCommand } = require('@aws-sdk/client-ec2');
+    const mockClient = {
+      send: jest.fn().mockResolvedValue({}),
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
+    };
+    const groupId = 'sg-123456789';
+    const ipAddress = '192.168.1.1';
+    const description = 'Custom port test';
+
+    core.info = jest.fn();
+    core.saveState = jest.fn();
+
+    await addIPToSecurityGroup(mockClient, groupId, ipAddress, description, 5432, 'udp');
+
+    expect(mockClient.send).toHaveBeenCalledTimes(1);
+    expect(core.saveState).toHaveBeenCalledWith('sg-port', '5432');
+    expect(core.saveState).toHaveBeenCalledWith('sg-protocol', 'udp');
+
+    expect(AuthorizeSecurityGroupIngressCommand).toHaveBeenLastCalledWith({
+      GroupId: groupId,
+      IpPermissions: [
+        {
+          IpProtocol: 'udp',
+          FromPort: 5432,
+          ToPort: 5432,
+          IpRanges: [
+            {
+              CidrIp: '192.168.1.1/32',
+              Description: description,
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  test('addIPToSecurityGroup should support all/any protocols without port spec', async () => {
+    const { AuthorizeSecurityGroupIngressCommand } = require('@aws-sdk/client-ec2');
+    const mockClient = {
+      send: jest.fn().mockResolvedValue({}),
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
+    };
+    const groupId = 'sg-123456789';
+    const ipAddress = '192.168.1.1';
+
+    core.info = jest.fn();
+    core.saveState = jest.fn();
+
+    await addIPToSecurityGroup(mockClient, groupId, ipAddress, undefined, -1, 'all');
+
+    expect(mockClient.send).toHaveBeenCalledTimes(1);
+    expect(core.saveState).toHaveBeenCalledWith('sg-port', '-1');
+    expect(core.saveState).toHaveBeenCalledWith('sg-protocol', 'all');
+
+    expect(AuthorizeSecurityGroupIngressCommand).toHaveBeenLastCalledWith({
+      GroupId: groupId,
+      IpPermissions: [
+        {
+          IpProtocol: '-1',
+          IpRanges: [
+            {
+              CidrIp: '192.168.1.1/32',
+              Description: 'Temporary access from GitHub Actions runner',
+            },
+          ],
+        },
+      ],
+    });
   });
 
   test('addIPToIPSet should add IP to WAF IPSet when it is not present', async () => {
@@ -278,7 +353,7 @@ describe('aws-waf-temp-access', () => {
     core.saveState = jest.fn();
 
     const promise = addIPToIPSet(mockClient, 'ipset-123', 'test-ipset', 'REGIONAL', '192.168.1.1');
-    
+
     // Fast-forward timers
     await jest.runAllTimersAsync();
     await promise;
@@ -363,7 +438,7 @@ describe('aws-waf-temp-access', () => {
 
     const promise = addIPToSecurityGroup(mockClient, 'sg-123', '192.168.1.1');
     const expectPromise = expect(promise).rejects.toThrow('Network error');
-    
+
     // Fast-forward timers for retries
     await jest.runAllTimersAsync();
 

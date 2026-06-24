@@ -145,33 +145,46 @@ async function addIPToIPSet(client, id, name, scope, ipAddress) {
  * @param {string} groupId Security Group ID
  * @param {string} ipAddress IP address to add
  * @param {string} description Description for the rule
+ * @param {number} port Ingress port (default: 443)
+ * @param {string} protocol Ingress protocol (default: 'tcp')
  */
-async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
+async function addIPToSecurityGroup(
+  client,
+  groupId,
+  ipAddress,
+  description,
+  port = 443,
+  protocol = 'tcp',
+) {
   const maxRetries = 5;
   const baseDelay = 1000; // 1 second
 
   const ipWithCidr = ipAddress.includes('/') ? ipAddress : `${ipAddress}/32`;
+  const resolvedProtocol = protocol.toLowerCase() === 'all' ? '-1' : protocol;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       core.info(`Adding IP ${ipWithCidr} to Security Group ${groupId}...`);
 
-      const command = new AuthorizeSecurityGroupIngressCommand({
-        GroupId: groupId,
-        IpPermissions: [
+      const ipPermission = {
+        IpProtocol: resolvedProtocol,
+        IpRanges: [
           {
-            IpProtocol: 'tcp',
-            FromPort: 443,
-            ToPort: 443,
-            IpRanges: [
-              {
-                CidrIp: ipWithCidr,
-                Description:
-                  description || 'Temporary access from GitHub Actions runner',
-              },
-            ],
+            CidrIp: ipWithCidr,
+            Description:
+              description || 'Temporary access from GitHub Actions runner',
           },
         ],
+      };
+
+      if (resolvedProtocol !== '-1') {
+        ipPermission.FromPort = port;
+        ipPermission.ToPort = port;
+      }
+
+      const command = new AuthorizeSecurityGroupIngressCommand({
+        GroupId: groupId,
+        IpPermissions: [ipPermission],
       });
 
       await client.send(command);
@@ -187,6 +200,8 @@ async function addIPToSecurityGroup(client, groupId, ipAddress, description) {
         description || 'Temporary access from GitHub Actions runner',
       );
       core.saveState('sg-aws-region', await client.config.region());
+      core.saveState('sg-port', port.toString());
+      core.saveState('sg-protocol', protocol);
 
       return;
     } catch (error) {
@@ -216,11 +231,21 @@ async function main() {
     const id = core.getInput('id');
     const name = core.getInput('name');
     const scope = core.getInput('scope');
-    const region = core.getInput('region', { required: true });
+    const region =
+      core.getInput('region') ||
+      process.env.AWS_REGION ||
+      process.env.AWS_DEFAULT_REGION ||
+      'us-east-1';
     const securityGroupId = core.getInput('security-group-id');
     const securityGroupDescription = core.getInput(
       'security-group-description',
     );
+    const securityGroupPort = parseInt(
+      core.getInput('security-group-port') || '443',
+      10,
+    );
+    const securityGroupProtocol =
+      core.getInput('security-group-protocol') || 'tcp';
 
     // Validate that at least one target is specified
     const hasWafConfig = id && name;
@@ -237,7 +262,9 @@ async function main() {
       core.info(`WAF IPSet target: ${name} (${id})`);
     }
     if (hasSecurityGroupConfig) {
-      core.info(`Security Group target: ${securityGroupId}`);
+      core.info(
+        `Security Group target: ${securityGroupId} (Port: ${securityGroupPort}, Protocol: ${securityGroupProtocol})`,
+      );
     }
 
     // Validate WAF scope if WAF is configured
@@ -266,6 +293,8 @@ async function main() {
         securityGroupId,
         publicIP,
         securityGroupDescription,
+        securityGroupPort,
+        securityGroupProtocol,
       );
     }
 

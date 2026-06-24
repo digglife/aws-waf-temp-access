@@ -47,12 +47,31 @@ steps:
       role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
       aws-region: us-east-1
 
-  - name: Add runner IP to Security Group
+  - name: Add runner IP to Security Group (Default HTTPS/443)
     uses: digglife/aws-waf-temp-access@v1
     with:
       security-group-id: 'sg-1234567890abcdef0'
       security-group-description: 'GitHub Actions temporary access'
-      region: 'us-east-1'
+      # region is optional; defaults to configured AWS environment region (us-east-1 fallback)
+```
+
+### Security Group with Custom Port & Protocol (e.g. Database access)
+
+```yaml
+steps:
+  - name: Configure AWS credentials
+    uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
+      aws-region: us-east-1
+
+  - name: Add runner IP to Security Group for PostgreSQL
+    uses: digglife/aws-waf-temp-access@v1
+    with:
+      security-group-id: 'sg-1234567890abcdef0'
+      security-group-port: 5432
+      security-group-protocol: 'tcp'
+      security-group-description: 'GitHub Actions Database access'
 ```
 
 ### Both WAF IPSet and Security Group
@@ -75,7 +94,6 @@ steps:
       # Security Group configuration
       security-group-id: 'sg-1234567890abcdef0'
       security-group-description: 'GitHub Actions temporary access'
-      region: 'us-east-1'
 ```
 
 ### Basic Usage
@@ -136,14 +154,16 @@ jobs:
 
 ## Inputs
 
-| Input                        | Description                                         | Required | Default                                       |
-| ---------------------------- | --------------------------------------------------- | -------- | --------------------------------------------- |
-| `id`                         | The ID of the IPSet                                 | ❌ No\*  |                                               |
-| `name`                       | The name of the IPSet                               | ❌ No\*  |                                               |
-| `scope`                      | The scope of the IPSet (`CLOUDFRONT` or `REGIONAL`) | ❌ No\*  | `REGIONAL`                                    |
-| `region`                     | The AWS region                                      | ✅ Yes   | `us-east-1`                                   |
-| `security-group-id`          | The ID of the Security Group                        | ❌ No\*  |                                               |
-| `security-group-description` | Description for the Security Group rule             | ❌ No    | `Temporary access from GitHub Actions runner` |
+| Input                      | Description                                                  | Required | Default                                       |
+| -------------------------- | ------------------------------------------------------------ | -------- | --------------------------------------------- |
+| `id`                       | The ID of the IPSet                                          | ❌ No\*  |                                               |
+| `name`                     | The name of the IPSet                                        | ❌ No\*  |                                               |
+| `scope`                    | The scope of the IPSet (`CLOUDFRONT` or `REGIONAL`)          | ❌ No\*  | `REGIONAL`                                    |
+| `region`                   | The AWS region                                               | ❌ No    | Inferred from env (fallback: `us-east-1`)     |
+| `security-group-id`        | The ID of the Security Group                                 | ❌ No\*  |                                               |
+| `security-group-description` | Description for the Security Group rule                     | ❌ No    | `Temporary access from GitHub Actions runner` |
+| `security-group-port`      | Ingress port to authorize for the Security Group rule        | ❌ No    | `443`                                         |
+| `security-group-protocol`  | Ingress protocol to authorize for the Security Group rule    | ❌ No    | `tcp`                                         |
 
 \*At least one target must be specified: either WAF IPSet configuration (`id`, `name`, `scope`) or Security Group configuration (`security-group-id`), or both.
 

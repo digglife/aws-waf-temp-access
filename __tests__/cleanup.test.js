@@ -136,7 +136,7 @@ describe('cleanup', () => {
       jest.useRealTimers();
     });
 
-    test('should log warning and exit after max retries', async () => {
+    test('should log warning and exit after max retries due to lock conflicts', async () => {
       jest.useFakeTimers();
       const mockClient = {
         send: jest.fn()
@@ -173,7 +173,7 @@ describe('cleanup', () => {
       await promise;
 
       expect(core.warning).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to cleanup IP after 10 attempts')
+        expect.stringContaining('Failed to cleanup IP after 10 attempts due to lock conflicts')
       );
       jest.useRealTimers();
     });
@@ -206,7 +206,8 @@ describe('cleanup', () => {
   });
 
   describe('removeIPFromSecurityGroup', () => {
-    test('should remove IP from security group successfully', async () => {
+    test('should remove IP from security group successfully (default port and protocol)', async () => {
+      const { RevokeSecurityGroupIngressCommand } = require('@aws-sdk/client-ec2');
       const mockClient = {
         send: jest.fn().mockResolvedValue({}),
       };
@@ -217,6 +218,74 @@ describe('cleanup', () => {
 
       expect(mockClient.send).toHaveBeenCalledTimes(1);
       expect(core.info).toHaveBeenCalledWith('Successfully removed IP 192.168.1.1/32 from Security Group sg-123');
+      expect(RevokeSecurityGroupIngressCommand).toHaveBeenLastCalledWith({
+        GroupId: 'sg-123',
+        IpPermissions: [
+          {
+            IpProtocol: 'tcp',
+            FromPort: 443,
+            ToPort: 443,
+            IpRanges: [
+              {
+                CidrIp: '192.168.1.1/32',
+                Description: 'Test Description',
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    test('should support custom port and protocol', async () => {
+      const { RevokeSecurityGroupIngressCommand } = require('@aws-sdk/client-ec2');
+      const mockClient = {
+        send: jest.fn().mockResolvedValue({}),
+      };
+
+      await removeIPFromSecurityGroup(mockClient, 'sg-123', '192.168.1.1/32', 'Test Description', 5432, 'udp');
+
+      expect(mockClient.send).toHaveBeenCalledTimes(1);
+      expect(RevokeSecurityGroupIngressCommand).toHaveBeenLastCalledWith({
+        GroupId: 'sg-123',
+        IpPermissions: [
+          {
+            IpProtocol: 'udp',
+            FromPort: 5432,
+            ToPort: 5432,
+            IpRanges: [
+              {
+                CidrIp: '192.168.1.1/32',
+                Description: 'Test Description',
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    test('should support protocol all/-1 without port spec', async () => {
+      const { RevokeSecurityGroupIngressCommand } = require('@aws-sdk/client-ec2');
+      const mockClient = {
+        send: jest.fn().mockResolvedValue({}),
+      };
+
+      await removeIPFromSecurityGroup(mockClient, 'sg-123', '192.168.1.1/32', undefined, -1, 'all');
+
+      expect(mockClient.send).toHaveBeenCalledTimes(1);
+      expect(RevokeSecurityGroupIngressCommand).toHaveBeenLastCalledWith({
+        GroupId: 'sg-123',
+        IpPermissions: [
+          {
+            IpProtocol: '-1',
+            IpRanges: [
+              {
+                CidrIp: '192.168.1.1/32',
+                Description: 'Temporary access from GitHub Actions runner',
+              },
+            ],
+          },
+        ],
+      });
     });
 
     test('should exit early when IP permission not found in security group', async () => {
@@ -299,6 +368,8 @@ describe('cleanup', () => {
         if (key === 'sg-group-id') return 'sg-123';
         if (key === 'sg-aws-region') return 'us-west-2';
         if (key === 'sg-description') return 'Temp description';
+        if (key === 'sg-port') return '5432';
+        if (key === 'sg-protocol') return 'udp';
         return '';
       });
 
