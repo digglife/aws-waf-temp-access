@@ -9,34 +9,41 @@ branding:
 
 inputs:
   id:
-    description: 'The ID of the IPSet'
+    description: 'The ID of the WAF IPSet. Required if not using security-group-id.'
     required: false
   name:
-    description: 'The name of the IPSet'
+    description: 'The name of the WAF IPSet. Required if not using security-group-id.'
     required: false
   scope:
-    description: 'The scope of the IPSet (CLOUDFRONT or REGIONAL)'
+    description: 'The scope of the WAF IPSet (CLOUDFRONT or REGIONAL)'
     required: false
     default: 'REGIONAL'
   region:
-    description: 'The AWS region for the IPSet'
-    required: true
-    default: 'us-east-1'
+    description: 'The AWS region. Falls back to AWS_REGION env, AWS_DEFAULT_REGION env, then us-east-1.'
+    required: false
   security-group-id:
-    description: 'The ID of the Security Group'
+    description: 'The ID of the EC2 Security Group. Required if not using id/name.'
     required: false
   security-group-description:
-    description: 'Description for the Security Group rule'
+    description: 'Description for the Security Group ingress rule'
     required: false
     default: 'Temporary access from GitHub Actions runner'
+  security-group-port:
+    description: 'The TCP port for the Security Group ingress rule'
+    required: false
+    default: '443'
+  security-group-protocol:
+    description: 'The IP protocol for the Security Group ingress rule'
+    required: false
+    default: 'tcp'
 
 runs:
-  using: 'node24'
+  using: 'node26'
   main: 'dist/index.js'
   post: 'dist/cleanup.js'
 
 outputs:
   ip-address:
-    description: 'The public IP address that was added to the IPSet'
+    description: 'The public IP address that was added to the target(s)'
   status:
     description: 'Status of the operation (success or failed)'

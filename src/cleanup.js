@@ -124,15 +124,21 @@ async function removeIPFromIPSet(client, id, name, scope, ipAddress) {
  * @param {string} groupId Security Group ID
  * @param {string} ipAddress IP address to remove
  * @param {string} description Description for the rule
+ * @param {number} port Ingress port (default: 443)
+ * @param {string} protocol Ingress protocol (default: 'tcp')
  */
 async function removeIPFromSecurityGroup(
   client,
   groupId,
   ipAddress,
   description,
+  port = 443,
+  protocol = 'tcp',
 ) {
   const maxRetries = 5;
   const baseDelay = 1000; // 1 second
+
+  const resolvedProtocol = protocol.toLowerCase() === 'all' ? '-1' : protocol;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -140,22 +146,25 @@ async function removeIPFromSecurityGroup(
         `Cleanup attempt ${attempt + 1}: Removing IP ${ipAddress} from Security Group ${groupId}...`,
       );
 
-      const command = new RevokeSecurityGroupIngressCommand({
-        GroupId: groupId,
-        IpPermissions: [
+      const ipPermission = {
+        IpProtocol: resolvedProtocol,
+        IpRanges: [
           {
-            IpProtocol: 'tcp',
-            FromPort: 443,
-            ToPort: 443,
-            IpRanges: [
-              {
-                CidrIp: ipAddress,
-                Description:
-                  description || 'Temporary access from GitHub Actions runner',
-              },
-            ],
+            CidrIp: ipAddress,
+            Description:
+              description || 'Temporary access from GitHub Actions runner',
           },
         ],
+      };
+
+      if (resolvedProtocol !== '-1') {
+        ipPermission.FromPort = port;
+        ipPermission.ToPort = port;
+      }
+
+      const command = new RevokeSecurityGroupIngressCommand({
+        GroupId: groupId,
+        IpPermissions: [ipPermission],
       });
 
       await client.send(command);
@@ -201,6 +210,8 @@ async function cleanup() {
     const sgGroupId = core.getState('sg-group-id');
     const sgDescription = core.getState('sg-description');
     const sgAwsRegion = core.getState('sg-aws-region');
+    const sgPort = parseInt(core.getState('sg-port') || '443', 10);
+    const sgProtocol = core.getState('sg-protocol') || 'tcp';
 
     const hasWafState =
       runnerIP && ipsetId && ipsetName && ipsetScope && awsRegion;
@@ -241,6 +252,8 @@ async function cleanup() {
         sgGroupId,
         sgRunnerIP,
         sgDescription,
+        sgPort,
+        sgProtocol,
       );
 
       core.info('Security Group cleanup completed successfully');
