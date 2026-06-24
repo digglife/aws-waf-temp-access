@@ -109329,6 +109329,12 @@ async function removeIPFromIPSet(client, id, name, scope, ipAddress) {
       return;
     } catch (error) {
       if (error.name === 'WAFOptimisticLockException') {
+        if (attempt === maxRetries - 1) {
+          core.warning(
+            `Failed to cleanup IP after ${maxRetries} attempts due to lock conflicts. Manual cleanup may be required.`,
+          );
+          return;
+        }
         const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
         core.warning(
           `Lock conflict detected during cleanup, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`,

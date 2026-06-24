@@ -252,4 +252,222 @@ describe('aws-waf-temp-access', () => {
     expect(core.saveState).not.toHaveBeenCalled();
     expect(core.info).toHaveBeenCalledWith('IP 192.168.1.1/32 is already in the IPSet');
   });
+
+  test('addIPToIPSet should retry when WAFOptimisticLockException is thrown and succeed eventually', async () => {
+    jest.useFakeTimers();
+    const mockClient = {
+      send: jest.fn()
+        // First attempt: Get IPSet (success)
+        .mockResolvedValueOnce({
+          IPSet: { Addresses: [] },
+          LockToken: 'lock-token-1',
+        })
+        // First attempt: Update IPSet (lock conflict)
+        .mockRejectedValueOnce({ name: 'WAFOptimisticLockException' })
+        // Second attempt: Get IPSet (success)
+        .mockResolvedValueOnce({
+          IPSet: { Addresses: [] },
+          LockToken: 'lock-token-2',
+        })
+        // Second attempt: Update IPSet (success)
+        .mockResolvedValueOnce({}),
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
+    };
+
+    core.warning = jest.fn();
+    core.saveState = jest.fn();
+
+    const promise = addIPToIPSet(mockClient, 'ipset-123', 'test-ipset', 'REGIONAL', '192.168.1.1');
+    
+    // Fast-forward timers
+    await jest.runAllTimersAsync();
+    await promise;
+
+    expect(mockClient.send).toHaveBeenCalledTimes(4);
+    expect(core.warning).toHaveBeenCalled();
+    expect(core.saveState).toHaveBeenCalledWith('runner-ip', '192.168.1.1/32');
+    jest.useRealTimers();
+  });
+
+  test('addIPToIPSet should throw error after max retries due to lock conflicts', async () => {
+    jest.useFakeTimers();
+    const mockClient = {
+      send: jest.fn().mockImplementation(async (command) => {
+        // Return GetIPSet response, throw on UpdateIPSet
+        if (command.constructor.name === 'UpdateIPSetCommand' || mockClient.send.mock.calls.length % 2 === 0) {
+          throw { name: 'WAFOptimisticLockException' };
+        }
+        return {
+          IPSet: { Addresses: [] },
+          LockToken: 'lock-token-1',
+        };
+      }),
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
+    };
+
+    core.warning = jest.fn();
+
+    const promise = addIPToIPSet(mockClient, 'ipset-123', 'test-ipset', 'REGIONAL', '192.168.1.1');
+    const expectPromise = expect(promise).rejects.toThrow('Failed to add IP to IPSet after 10 attempts due to lock conflicts');
+
+    await jest.runAllTimersAsync();
+    await expectPromise;
+
+    expect(mockClient.send).toHaveBeenCalledTimes(20); // 10 gets, 10 updates
+    expect(core.warning).toHaveBeenCalledTimes(10);
+    jest.useRealTimers();
+  });
+
+  test('addIPToIPSet should throw non-lock exceptions immediately', async () => {
+    const mockClient = {
+      send: jest.fn()
+        .mockResolvedValueOnce({
+          IPSet: { Addresses: [] },
+          LockToken: 'lock-token-1',
+        })
+        .mockRejectedValueOnce(new Error('Some other AWS error')),
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
+    };
+
+    await expect(
+      addIPToIPSet(mockClient, 'ipset-123', 'test-ipset', 'REGIONAL', '192.168.1.1')
+    ).rejects.toThrow('Some other AWS error');
+
+    expect(mockClient.send).toHaveBeenCalledTimes(2);
+  });
+
+  test('addIPToSecurityGroup should exit early if IP is already in Security Group (InvalidPermission.Duplicate)', async () => {
+    const mockClient = {
+      send: jest.fn().mockRejectedValue({ name: 'InvalidPermission.Duplicate' }),
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
+    };
+
+    core.info = jest.fn();
+    core.saveState = jest.fn();
+
+    await addIPToSecurityGroup(mockClient, 'sg-123', '192.168.1.1');
+
+    expect(mockClient.send).toHaveBeenCalledTimes(1);
+    expect(core.info).toHaveBeenCalledWith('IP 192.168.1.1/32 is already allowed in Security Group sg-123');
+    expect(core.saveState).not.toHaveBeenCalled();
+  });
+
+  test('addIPToSecurityGroup should retry on failure and eventually throw after maxRetries', async () => {
+    jest.useFakeTimers();
+    const mockClient = {
+      send: jest.fn().mockRejectedValue(new Error('Network error')),
+      config: { region: jest.fn().mockResolvedValue('us-east-1') },
+    };
+
+    core.warning = jest.fn();
+
+    const promise = addIPToSecurityGroup(mockClient, 'sg-123', '192.168.1.1');
+    const expectPromise = expect(promise).rejects.toThrow('Network error');
+    
+    // Fast-forward timers for retries
+    await jest.runAllTimersAsync();
+
+    await expectPromise;
+    // maxRetries is 5, so it should be called 5 times
+    expect(mockClient.send).toHaveBeenCalledTimes(5);
+    expect(core.warning).toHaveBeenCalledTimes(4);
+    jest.useRealTimers();
+  });
+
+  describe('main', () => {
+    const { main } = require('../src/index.js');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Setup default mock implementation for clients
+      mockWAFV2Client.mockImplementation(() => ({
+        send: jest.fn()
+          .mockResolvedValueOnce({
+            IPSet: { Addresses: [] },
+            LockToken: 'lock-token-123',
+          })
+          .mockResolvedValueOnce({}),
+        config: { region: jest.fn().mockResolvedValue('us-east-1') },
+      }));
+
+      mockEC2Client.mockImplementation(() => ({
+        send: jest.fn().mockResolvedValue({}),
+        config: { region: jest.fn().mockResolvedValue('us-east-1') },
+      }));
+
+      // Mock getPublicIP dependencies
+      axios.get.mockResolvedValue({ data: '1.2.3.4' });
+    });
+
+    test('main should configure WAF IPSet when only WAF config is provided', async () => {
+      core.getInput.mockImplementation((name) => {
+        if (name === 'id') return 'ipset-123';
+        if (name === 'name') return 'test-ipset';
+        if (name === 'scope') return 'REGIONAL';
+        if (name === 'region') return 'us-east-1';
+        return '';
+      });
+
+      core.info = jest.fn();
+      core.setOutput = jest.fn();
+
+      await main();
+
+      expect(mockWAFV2Client).toHaveBeenCalled();
+      expect(mockEC2Client).not.toHaveBeenCalled();
+      expect(core.setOutput).toHaveBeenCalledWith('ip-address', '1.2.3.4');
+      expect(core.setOutput).toHaveBeenCalledWith('status', 'success');
+    });
+
+    test('main should configure Security Group when only SG config is provided', async () => {
+      core.getInput.mockImplementation((name) => {
+        if (name === 'security-group-id') return 'sg-123';
+        if (name === 'region') return 'us-east-1';
+        return '';
+      });
+
+      core.info = jest.fn();
+      core.setOutput = jest.fn();
+
+      await main();
+
+      expect(mockWAFV2Client).not.toHaveBeenCalled();
+      expect(mockEC2Client).toHaveBeenCalled();
+      expect(core.setOutput).toHaveBeenCalledWith('ip-address', '1.2.3.4');
+      expect(core.setOutput).toHaveBeenCalledWith('status', 'success');
+    });
+
+    test('main should throw if neither WAF nor SG config is provided', async () => {
+      core.getInput.mockImplementation((name) => {
+        if (name === 'region') return 'us-east-1';
+        return '';
+      });
+
+      core.setFailed = jest.fn();
+
+      await main();
+
+      expect(core.setFailed).toHaveBeenCalledWith(
+        expect.stringContaining('Either WAF IPSet configuration (id, name) or Security Group configuration (security-group-id) must be provided')
+      );
+    });
+
+    test('main should throw if WAF scope is invalid', async () => {
+      core.getInput.mockImplementation((name) => {
+        if (name === 'id') return 'ipset-123';
+        if (name === 'name') return 'test-ipset';
+        if (name === 'scope') return 'INVALID_SCOPE';
+        if (name === 'region') return 'us-east-1';
+        return '';
+      });
+
+      core.setFailed = jest.fn();
+
+      await main();
+
+      expect(core.setFailed).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid scope: INVALID_SCOPE. Must be CLOUDFRONT or REGIONAL')
+      );
+    });
+  });
 });
