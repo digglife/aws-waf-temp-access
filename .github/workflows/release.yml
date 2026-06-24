@@ -50,38 +50,5 @@ jobs:
         with:
           tag: ${{ steps.tag.outputs.tag }}
           name: Release ${{ steps.tag.outputs.tag }}
-          body: |
-            ## Changes in ${{ steps.tag.outputs.tag }}
-
-            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
-
-            ## Usage
-
-            ```yaml
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                role-to-assume: arn:aws:iam::123456789012:role/github-actions-role
-                aws-region: us-east-1
-            - name: Add runner IP to WAF IPSet
-              uses: digglife/aws-waf-temp-access@${{ steps.tag.outputs.tag }}
-              with:
-                id: 'your-ipset-id'
-                name: 'your-ipset-name'
-                scope: 'REGIONAL'
-                region: 'us-east-1'
-            ```
-          draft: false
-          prerelease: false
-
-      - name: Commit and push dist files
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add dist/
-          if ! git diff --staged --quiet; then
-            git commit -m "Build and package for release ${{ steps.tag.outputs.tag }}"
-            git push origin HEAD:main
-          else
-            echo "No changes to commit"
-          fi
+          generateReleaseNotesPreviousTag: true
+          draft: true
