@@ -38,7 +38,7 @@ inputs:
     default: 'tcp'
 
 runs:
-  using: 'node26'
+  using: 'node24'
   main: 'dist/index.js'
   post: 'dist/cleanup.js'
 
