@@ -33,6 +33,7 @@ jest.mock('axios', () => ({
 }));
 
 const {
+  sleep,
   getPublicIP,
   createWAFClient,
   createEC2Client,
@@ -58,7 +59,7 @@ describe('aws-waf-temp-access', () => {
     expect(action.name).toBe('aws-waf-temp-access');
     expect(action.description).toBeDefined();
     expect(action.runs).toBeDefined();
-    expect(action.runs.using).toBe('node26');
+    expect(action.runs.using).toBe('node24');
     expect(action.runs.main).toBe('dist/index.js');
     expect(action.runs.post).toBe('dist/cleanup.js');
 
@@ -295,8 +296,9 @@ describe('aws-waf-temp-access', () => {
     core.info = jest.fn();
     core.saveState = jest.fn();
 
-    await addIPToIPSet(mockClient, id, name, scope, ipAddress);
+    const result = await addIPToIPSet(mockClient, id, name, scope, ipAddress);
 
+    expect(result).toBe(true);
     expect(mockClient.send).toHaveBeenCalledTimes(2);
     expect(core.saveState).toHaveBeenCalledWith('runner-ip', '192.168.1.1/32');
     expect(core.saveState).toHaveBeenCalledWith('ipset-id', id);
@@ -321,8 +323,9 @@ describe('aws-waf-temp-access', () => {
     core.info = jest.fn();
     core.saveState = jest.fn();
 
-    await addIPToIPSet(mockClient, id, name, scope, ipAddress);
+    const result = await addIPToIPSet(mockClient, id, name, scope, ipAddress);
 
+    expect(result).toBe(false);
     expect(mockClient.send).toHaveBeenCalledTimes(1);
     expect(core.saveState).not.toHaveBeenCalled();
     expect(core.info).toHaveBeenCalledWith('IP 192.168.1.1/32 is already in the IPSet');
@@ -449,11 +452,26 @@ describe('aws-waf-temp-access', () => {
     jest.useRealTimers();
   });
 
+  test('sleep function should wait for specified milliseconds', async () => {
+    jest.useFakeTimers();
+    
+    const startTime = Date.now();
+    const promise = sleep(1000);
+    
+    expect(Date.now() - startTime).toBeLessThan(100); // Should not have waited yet
+    
+    jest.advanceTimersByTime(1000);
+    await promise;
+    
+    jest.useRealTimers();
+  });
+
   describe('main', () => {
     const { main } = require('../src/index.js');
 
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.useFakeTimers();
       // Setup default mock implementation for clients
       mockWAFV2Client.mockImplementation(() => ({
         send: jest.fn()
@@ -474,6 +492,10 @@ describe('aws-waf-temp-access', () => {
       axios.get.mockResolvedValue({ data: '1.2.3.4' });
     });
 
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     test('main should configure WAF IPSet when only WAF config is provided', async () => {
       core.getInput.mockImplementation((name) => {
         if (name === 'id') return 'ipset-123';
@@ -485,8 +507,11 @@ describe('aws-waf-temp-access', () => {
 
       core.info = jest.fn();
       core.setOutput = jest.fn();
+      core.saveState = jest.fn();
 
-      await main();
+      const promise = main();
+      await jest.runAllTimersAsync();
+      await promise;
 
       expect(mockWAFV2Client).toHaveBeenCalled();
       expect(mockEC2Client).not.toHaveBeenCalled();
@@ -504,7 +529,9 @@ describe('aws-waf-temp-access', () => {
       core.info = jest.fn();
       core.setOutput = jest.fn();
 
-      await main();
+      const promise = main();
+      await jest.runAllTimersAsync();
+      await promise;
 
       expect(mockWAFV2Client).not.toHaveBeenCalled();
       expect(mockEC2Client).toHaveBeenCalled();
@@ -520,7 +547,9 @@ describe('aws-waf-temp-access', () => {
 
       core.setFailed = jest.fn();
 
-      await main();
+      const promise = main();
+      await jest.runAllTimersAsync();
+      await promise;
 
       expect(core.setFailed).toHaveBeenCalledWith(
         expect.stringContaining('Either WAF IPSet configuration (id, name) or Security Group configuration (security-group-id) must be provided')
@@ -538,11 +567,119 @@ describe('aws-waf-temp-access', () => {
 
       core.setFailed = jest.fn();
 
-      await main();
+      const promise = main();
+      await jest.runAllTimersAsync();
+      await promise;
 
       expect(core.setFailed).toHaveBeenCalledWith(
         expect.stringContaining('Invalid scope: INVALID_SCOPE. Must be CLOUDFRONT or REGIONAL')
       );
+    });
+
+    test('main should wait 30 seconds after WAF IPSet update', async () => {
+      core.getInput.mockImplementation((name) => {
+        if (name === 'id') return 'ipset-123';
+        if (name === 'name') return 'test-ipset';
+        if (name === 'scope') return 'REGIONAL';
+        if (name === 'region') return 'us-east-1';
+        return '';
+      });
+
+      core.info = jest.fn();
+      core.setOutput = jest.fn();
+      core.saveState = jest.fn();
+
+      const promise = main();
+      await jest.runAllTimersAsync();
+      await promise;
+
+      expect(core.info).toHaveBeenCalledWith('Waiting 30 seconds for WAF IPSet changes to propagate...');
+      expect(core.info).toHaveBeenCalledWith('WAF IPSet propagation wait completed');
+    });
+
+    test('main should not wait if WAF IPSet already contains the IP', async () => {
+      // Mock IPSet already containing the IP
+      mockWAFV2Client.mockImplementation(() => ({
+        send: jest.fn().mockResolvedValueOnce({
+          IPSet: { Addresses: ['1.2.3.4/32'] },
+          LockToken: 'lock-token-123',
+        }),
+        config: { region: jest.fn().mockResolvedValue('us-east-1') },
+      }));
+
+      core.getInput.mockImplementation((name) => {
+        if (name === 'id') return 'ipset-123';
+        if (name === 'name') return 'test-ipset';
+        if (name === 'scope') return 'REGIONAL';
+        if (name === 'region') return 'us-east-1';
+        return '';
+      });
+
+      core.info = jest.fn();
+      core.setOutput = jest.fn();
+
+      const promise = main();
+      await jest.runAllTimersAsync();
+      await promise;
+
+      expect(core.info).not.toHaveBeenCalledWith('Waiting 30 seconds for WAF IPSet changes to propagate...');
+    });
+
+    test('main should not wait for propagation when only Security Group is configured', async () => {
+      core.getInput.mockImplementation((name) => {
+        if (name === 'security-group-id') return 'sg-123';
+        if (name === 'security-group-port') return '443';
+        if (name === 'security-group-protocol') return 'tcp';
+        if (name === 'region') return 'us-east-1';
+        return '';
+      });
+
+      core.info = jest.fn();
+      core.setOutput = jest.fn();
+      core.saveState = jest.fn();
+
+      const promise = main();
+      await jest.runAllTimersAsync();
+      await promise;
+
+      expect(mockWAFV2Client).not.toHaveBeenCalled();
+      expect(mockEC2Client).toHaveBeenCalled();
+      expect(core.info).not.toHaveBeenCalledWith('Waiting 30 seconds for WAF IPSet changes to propagate...');
+      expect(core.setOutput).toHaveBeenCalledWith('ip-address', '1.2.3.4');
+      expect(core.setOutput).toHaveBeenCalledWith('status', 'success');
+    });
+
+    test('main should wait for WAF propagation but not delay Security Group update when both are configured', async () => {
+      core.getInput.mockImplementation((name) => {
+        if (name === 'id') return 'ipset-123';
+        if (name === 'name') return 'test-ipset';
+        if (name === 'scope') return 'REGIONAL';
+        if (name === 'security-group-id') return 'sg-123';
+        if (name === 'region') return 'us-east-1';
+        return '';
+      });
+
+      core.info = jest.fn();
+      core.setOutput = jest.fn();
+      core.saveState = jest.fn();
+
+      const promise = main();
+      await jest.runAllTimersAsync();
+      await promise;
+
+      expect(mockWAFV2Client).toHaveBeenCalled();
+      expect(mockEC2Client).toHaveBeenCalled();
+      
+      // Verify the order: WAF update, wait message, wait complete message, then SG operations
+      const infoCalls = core.info.mock.calls.map(call => call[0]);
+      const waitStartIndex = infoCalls.indexOf('Waiting 30 seconds for WAF IPSet changes to propagate...');
+      const waitEndIndex = infoCalls.indexOf('WAF IPSet propagation wait completed');
+      
+      expect(waitStartIndex).toBeGreaterThan(-1);
+      expect(waitEndIndex).toBeGreaterThan(waitStartIndex);
+      
+      expect(core.setOutput).toHaveBeenCalledWith('ip-address', '1.2.3.4');
+      expect(core.setOutput).toHaveBeenCalledWith('status', 'success');
     });
   });
 });

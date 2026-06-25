@@ -114287,6 +114287,15 @@ const {
 const axios = __nccwpck_require__(7269);
 
 /**
+ * Sleep for a specified number of milliseconds
+ * @param {number} ms Milliseconds to sleep
+ * @returns {Promise<void>}
+ */
+async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
  * Get the public IP address of the current GitHub runner
  * @returns {Promise<string>} The public IP address
  */
@@ -114344,6 +114353,7 @@ function createEC2Client(region) {
  * @param {string} name IPSet name
  * @param {string} scope IPSet scope
  * @param {string} ipAddress IP address to add
+ * @returns {Promise<boolean>} Returns true if IPSet was updated, false if IP was already present
  */
 async function addIPToIPSet(client, id, name, scope, ipAddress) {
   const maxRetries = 10;
@@ -114369,7 +114379,7 @@ async function addIPToIPSet(client, id, name, scope, ipAddress) {
         : `${ipAddress}/32`;
       if (currentAddresses.includes(ipWithCidr)) {
         core.info(`IP ${ipWithCidr} is already in the IPSet`);
-        return;
+        return false;
       }
 
       // Add the new IP to the list
@@ -114396,7 +114406,7 @@ async function addIPToIPSet(client, id, name, scope, ipAddress) {
       core.saveState('ipset-scope', scope);
       core.saveState('aws-region', await client.config.region());
 
-      return;
+      return true;
     } catch (error) {
       if (error.name === 'WAFOptimisticLockException') {
         const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
@@ -114556,9 +114566,17 @@ async function main() {
     core.info(`Public IP detected: ${publicIP}`);
 
     // Handle WAF IPSet if configured
+    let ipSetUpdated = false;
     if (hasWafConfig) {
       const wafClient = createWAFClient(region);
-      await addIPToIPSet(wafClient, id, name, scope, publicIP);
+      ipSetUpdated = await addIPToIPSet(wafClient, id, name, scope, publicIP);
+
+      // Wait for WAF IPSet propagation if an update occurred
+      if (ipSetUpdated) {
+        core.info('Waiting 30 seconds for WAF IPSet changes to propagate...');
+        await sleep(30000);
+        core.info('WAF IPSet propagation wait completed');
+      }
     }
 
     // Handle Security Group if configured
@@ -114589,6 +114607,7 @@ if (require.main === require.cache[eval('__filename')]) {
 
 // Export functions for testing
 module.exports = {
+  sleep,
   getPublicIP,
   createWAFClient,
   createEC2Client,
