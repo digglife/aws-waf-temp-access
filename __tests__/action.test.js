@@ -475,6 +475,7 @@ describe('aws-waf-temp-access', () => {
     });
 
     test('main should configure WAF IPSet when only WAF config is provided', async () => {
+      jest.useFakeTimers();
       core.getInput.mockImplementation((name) => {
         if (name === 'id') return 'ipset-123';
         if (name === 'name') return 'test-ipset';
@@ -486,33 +487,41 @@ describe('aws-waf-temp-access', () => {
       core.info = jest.fn();
       core.setOutput = jest.fn();
 
-      await main();
+      const promise = main();
+      await jest.runAllTimersAsync();
+      await promise;
 
       expect(mockWAFV2Client).toHaveBeenCalled();
       expect(mockEC2Client).not.toHaveBeenCalled();
+      expect(core.info).toHaveBeenCalledWith(
+        'Waiting 30 seconds for WAF IPSet propagation...',
+      );
       expect(core.setOutput).toHaveBeenCalledWith('ip-address', '1.2.3.4');
       expect(core.setOutput).toHaveBeenCalledWith('status', 'success');
+      jest.useRealTimers();
     });
 
-    test('main should configure Security Group when only SG config is provided', async () => {
+    test('main should fail when only SG config is provided', async () => {
       core.getInput.mockImplementation((name) => {
         if (name === 'security-group-id') return 'sg-123';
         if (name === 'region') return 'us-east-1';
         return '';
       });
 
-      core.info = jest.fn();
-      core.setOutput = jest.fn();
+      core.setFailed = jest.fn();
 
       await main();
 
       expect(mockWAFV2Client).not.toHaveBeenCalled();
-      expect(mockEC2Client).toHaveBeenCalled();
-      expect(core.setOutput).toHaveBeenCalledWith('ip-address', '1.2.3.4');
-      expect(core.setOutput).toHaveBeenCalledWith('status', 'success');
+      expect(mockEC2Client).not.toHaveBeenCalled();
+      expect(core.setFailed).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'WAF IPSet configuration (id, name) must be provided',
+        ),
+      );
     });
 
-    test('main should throw if neither WAF nor SG config is provided', async () => {
+    test('main should throw if WAF config is not provided', async () => {
       core.getInput.mockImplementation((name) => {
         if (name === 'region') return 'us-east-1';
         return '';
@@ -523,7 +532,9 @@ describe('aws-waf-temp-access', () => {
       await main();
 
       expect(core.setFailed).toHaveBeenCalledWith(
-        expect.stringContaining('Either WAF IPSet configuration (id, name) or Security Group configuration (security-group-id) must be provided')
+        expect.stringContaining(
+          'WAF IPSet configuration (id, name) must be provided',
+        ),
       );
     });
 

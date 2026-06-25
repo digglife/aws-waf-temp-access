@@ -236,39 +236,22 @@ async function main() {
       process.env.AWS_REGION ||
       process.env.AWS_DEFAULT_REGION ||
       'us-east-1';
+    if (!id || !name) {
+      throw new Error('WAF IPSet configuration (id, name) must be provided');
+    }
+
     const securityGroupId = core.getInput('security-group-id');
-    const securityGroupDescription = core.getInput(
-      'security-group-description',
-    );
-    const securityGroupPort = parseInt(
-      core.getInput('security-group-port') || '443',
-      10,
-    );
-    const securityGroupProtocol =
-      core.getInput('security-group-protocol') || 'tcp';
-
-    // Validate that at least one target is specified
-    const hasWafConfig = id && name;
-    const hasSecurityGroupConfig = securityGroupId;
-
-    if (!hasWafConfig && !hasSecurityGroupConfig) {
-      throw new Error(
-        'Either WAF IPSet configuration (id, name) or Security Group configuration (security-group-id) must be provided',
+    if (securityGroupId) {
+      core.info(
+        'Security Group update is disabled; skipping security-group-id input.',
       );
     }
 
     core.info(`Starting AWS access management in ${region}`);
-    if (hasWafConfig) {
-      core.info(`WAF IPSet target: ${name} (${id})`);
-    }
-    if (hasSecurityGroupConfig) {
-      core.info(
-        `Security Group target: ${securityGroupId} (Port: ${securityGroupPort}, Protocol: ${securityGroupProtocol})`,
-      );
-    }
+    core.info(`WAF IPSet target: ${name} (${id})`);
 
     // Validate WAF scope if WAF is configured
-    if (hasWafConfig && !['CLOUDFRONT', 'REGIONAL'].includes(scope)) {
+    if (!['CLOUDFRONT', 'REGIONAL'].includes(scope)) {
       throw new Error(
         `Invalid scope: ${scope}. Must be CLOUDFRONT or REGIONAL`,
       );
@@ -279,24 +262,10 @@ async function main() {
     const publicIP = await getPublicIP();
     core.info(`Public IP detected: ${publicIP}`);
 
-    // Handle WAF IPSet if configured
-    if (hasWafConfig) {
-      const wafClient = createWAFClient(region);
-      await addIPToIPSet(wafClient, id, name, scope, publicIP);
-    }
-
-    // Handle Security Group if configured
-    if (hasSecurityGroupConfig) {
-      const ec2Client = createEC2Client(region);
-      await addIPToSecurityGroup(
-        ec2Client,
-        securityGroupId,
-        publicIP,
-        securityGroupDescription,
-        securityGroupPort,
-        securityGroupProtocol,
-      );
-    }
+    const wafClient = createWAFClient(region);
+    await addIPToIPSet(wafClient, id, name, scope, publicIP);
+    core.info('Waiting 30 seconds for WAF IPSet propagation...');
+    await new Promise((resolve) => setTimeout(resolve, 30000));
 
     core.setOutput('ip-address', publicIP);
     core.setOutput('status', 'success');
