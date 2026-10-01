@@ -23,7 +23,7 @@
     "@actions/github": "^9.1.1",
     "@aws-sdk/client-ec2": "^3.1072.0",
     "@aws-sdk/client-wafv2": "^3.1072.0",
-    "axios": "^1.18.0"
+    "axios": "^1.20.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
